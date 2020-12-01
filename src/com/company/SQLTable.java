@@ -7,64 +7,138 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 public class SQLTable {
-    public static Connection conn;
-    public static Statement statmt;
-    public static ResultSet resSet;
+    public Connection conn;
+    public Statement statmt;
+    public ResultSet resSet;
+    private String tableName;
 
-    public static void Connect () throws ClassNotFoundException, SQLException {
+    public boolean Connect () {
         conn = null;
-        Class.forName("org.sqlite.JDBC");
-        conn = DriverManager.getConnection("jdbc:sqlite:USERS.s3db");
-        System.out.println("Connected");
+        try {
+            Class.forName("org.sqlite.JDBC");
+            conn = DriverManager.getConnection("jdbc:sqlite:USERS.s3db");
+            return true;
+        }catch (ClassNotFoundException | SQLException e) {
+            System.out.println("Connection failed");
+            return false;
+        }
     }
 
-    public static void CreateDB() throws ClassNotFoundException, SQLException {
-        statmt = conn.createStatement();
-        statmt.execute("CREATE TABLE if not exists 'users' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'name' text, 'ip' text, 'pub_key' text);");
-
-        System.out.println("Table created or exists");
+    public boolean CreateDB(String TableName) {
+        try {
+            tableName = TableName;
+            statmt = conn.createStatement();
+            statmt.execute("CREATE TABLE if not exists '" + tableName + "' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'name' text, 'ip' text, 'pub_key' text);");
+            return true;
+        }catch (SQLException e) {
+            System.out.println("Creating failed");
+            return false;
+        }
     }
 
-    public static void WriteDB(String Name, String Ip, String PublicKey ) throws SQLException
+    public boolean WriteDB(String Name, String Ip, String PublicKey)
     {
-        statmt.execute("INSERT INTO 'users' ('name', 'ip', 'pub_key')" +
-                " VALUES ('" + Name +"','" + Ip + "','" + PublicKey + "')");
-
-        System.out.println("Table full filled");
+        try {
+            statmt.execute("INSERT INTO '"+ tableName +"' ('name', 'ip', 'pub_key')" +
+                    " VALUES ('" + Name + "','" + Ip + "','" + PublicKey + "')");
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Writing failed");
+            return false;
+        }
     }
 
-    public static void ReadDB(String Name) throws ClassNotFoundException, SQLException
-    {
-        resSet = statmt.executeQuery("SELECT * FROM 'users' WHERE name = '" + Name + "'");
-        System.out.println("OOO");
-
-        int id = resSet.getInt("id");
-        String  name = resSet.getString("name");
-        String  ip = resSet.getString("ip");
-        String  pub_key = resSet.getString("pub_key");
-
-        System.out.println( "ID = " + id );
-        System.out.println( "name = " + name );
-        System.out.println( "ip = " + ip );
-        System.out.println( "public key = " + pub_key );
-        System.out.println();
-
-        System.out.println("Table has been read");
+    public String getPublicKeyByName (String Name) {
+        try {
+            resSet = statmt.executeQuery("SELECT * FROM '"+ tableName +"' WHERE name = '" + Name + "'");
+            return resSet.getString("pub_key");
+        } catch (SQLException e) {
+            System.out.println("getPubKeyByName failed");
+            return "";
+        }
     }
 
-    public static void CloseDB() throws ClassNotFoundException, SQLException
-    {
-        conn.close();
-        statmt.close();
-        resSet.close();
-
-        System.out.println("Connections closed");
+    public String getIpByName (String Name) {
+        try {
+            resSet = statmt.executeQuery("SELECT * FROM '"+ tableName +"' WHERE name = '" + Name + "'");
+            return resSet.getString("ip");
+        } catch (SQLException e) {
+            System.out.println("getIpByName failed");
+            return "";
+        }
     }
 
-    public static void DeleteDB() throws ClassNotFoundException, SQLException
-    {
-        statmt.execute("DROP TABLE 'users';");
+    public int getIdByName (String Name) {
+        try {
+            resSet = statmt.executeQuery("SELECT * FROM '"+ tableName +"' WHERE name = '" + Name + "'");
+            return Integer.parseInt(resSet.getString("id"));
+        } catch (SQLException e) {
+            System.out.println("getIdByName failed");
+            return -1;
+        }
+    }
 
-        System.out.println("DB deleted");
+    public String getPublicKeyById (int Id) {
+        try {
+            resSet = statmt.executeQuery("SELECT * FROM '"+ tableName +"' WHERE id = " + String.valueOf(Id));
+            return resSet.getString("pub_key");
+        } catch (SQLException e) {
+            System.out.println("getPubKeyById failed");
+            return "";
+        }
+    }
+
+    public String getNameById (int Id) {
+        try {
+            resSet = statmt.executeQuery("SELECT * FROM '"+ tableName +"' WHERE id = " + String.valueOf(Id));
+            return resSet.getString("name");
+        } catch (SQLException e) {
+            System.out.println("getNameById failed");
+            return "";
+        }
+    }
+
+    public String getIpById (int Id) {
+        try {
+            resSet = statmt.executeQuery("SELECT * FROM '"+ tableName +"' WHERE id = " + String.valueOf(Id));
+            return resSet.getString("ip");
+        } catch (SQLException e) {
+            System.out.println("getIpById failed");
+            return "";
+        }
+    }
+
+    public boolean DeleteByName (String Name) {
+        try {
+            statmt.execute("DELETE FROM '"+ tableName +"'WHERE name = '" + Name + "'");
+            return true;
+        }catch (SQLException e) {
+            return false;
+        }
+    }
+
+    public boolean CloseDB()
+    {
+        try {
+            conn.close();
+            statmt.close();
+            resSet.close();
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Closing failed");
+            return false;
+        }
+
+    }
+
+
+    public boolean DropDB()
+    {
+        try {
+            statmt.execute("DROP TABLE '" + tableName + "';");
+            return true;
+        }catch (SQLException e) {
+            return false;
+        }
     }
 }
