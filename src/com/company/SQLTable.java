@@ -37,7 +37,6 @@ public class SQLTable {
     {
         resSet = statmt.executeQuery("SELECT * FROM 'users' WHERE name = '" + Name + "'");
         System.out.println("OOO");
-        //resSet = statmt.executeQuery("SELECT * FROM 'users'");
 
         int id = resSet.getInt("id");
         String  name = resSet.getString("name");
