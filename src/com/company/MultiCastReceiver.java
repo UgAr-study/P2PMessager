@@ -7,17 +7,23 @@ import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 
-
-
-
-public class MulticastReceiver extends Thread{
+class MulticastReceiver extends Thread{
     protected MulticastSocket socket = null;
     protected int port;
     protected String ip;
+    protected SQLTable sqlTable;
+    protected String myName;
+    protected String myPublicKey;
+
+    public MulticastReceiver(SQLTable tableInput) {
+        sqlTable = tableInput;
+        myName = sqlTable.getNameById(1);
+        myPublicKey = sqlTable.getPublicKeyById(1);
+    }
 
     public void run() {
         port = 4446;
-        ip = "230.0.0.0";
+        ip = "230.0.0.1";
 
         try {
             socket = new MulticastSocket(port);
@@ -49,14 +55,20 @@ public class MulticastReceiver extends Thread{
             }
             String receivdMsg = new String(packet.getData(), 0, packet.getLength());
             String[] subString = receivdMsg.split(" ");
-            try {
-                String publicKey = SQLTable.getPublicKeyByName(subString[0]);
-                if (!publicKey.equals(subString[1])) {
-                    continue;
+            String fromName = subString[0];
+            String fromPublicKey = subString[1];
+            String toPublicKey = subString[2];
+            // Add authorized user
+            if (toPublicKey.equals("all")) {
+                if (sqlTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
+                    sqlTable.WriteDB(fromName, packet.getAddress().toString(), fromPublicKey);
                 }
-                SQLTable.WriteDB(subString[0], packet.getAddress().toString(), subString[1]);
-            } catch (SQLException | ClassNotFoundException throwables) {
-                throwables.printStackTrace();
+                new MultiCastSender(fromName, //TODO some edits, send msg connect
+                        myName, sqlTable.getPublicKeyByName(myName)).start();
+                continue;
+            }
+            if (toPublicKey.equals(myPublicKey) && sqlTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
+                sqlTable.WriteDB(fromName, packet.getAddress().toString(), fromPublicKey);
             }
         }
     }
