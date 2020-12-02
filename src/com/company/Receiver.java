@@ -41,7 +41,7 @@ public class MulticastReceiver extends Thread{
         byte[] buf = new byte[256];
 
         while(true) {
-            DatagramPacket packet = new DatagramPacket(buf, buf.length, group, port);
+            DatagramPacket packet = new DatagramPacket(buf, buf.length);
             try {
                 socket.receive(packet);
             } catch (IOException e) {
