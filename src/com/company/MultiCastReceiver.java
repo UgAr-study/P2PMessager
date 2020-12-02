@@ -9,8 +9,8 @@ import java.sql.SQLException;
 
 class MulticastReceiver extends Thread{
     protected MulticastSocket socket = null;
-    protected int port;
-    protected String ip;
+    protected int port = 4446;
+    protected String ip = "230.0.0.1";
     protected SQLTable sqlTable;
     protected String myName;
     protected String myPublicKey;
@@ -22,9 +22,6 @@ class MulticastReceiver extends Thread{
     }
 
     public void run() {
-        port = 4446;
-        ip = "230.0.0.1";
-
         try {
             socket = new MulticastSocket(port);
         } catch (IOException e) {
@@ -55,21 +52,24 @@ class MulticastReceiver extends Thread{
             }
             String receivdMsg = new String(packet.getData(), 0, packet.getLength());
             String[] subString = receivdMsg.split(" ");
-            String fromName = subString[0];
-            String fromPublicKey = subString[1];
-            String toPublicKey = subString[2];
+            String toPublicKey = subString[0];
+            String fromName = subString[1];
+            String fromPublicKey = subString[2];
             // Add authorized user
             if (toPublicKey.equals("all")) {
                 if (sqlTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
                     sqlTable.WriteDB(fromName, packet.getAddress().toString(), fromPublicKey);
                 }
-                new MultiCastSender(fromName, //TODO some edits, send msg connect
-                        myName, sqlTable.getPublicKeyByName(myName)).start();
+                new MultiCastSender(myPublicKey, myName, fromPublicKey).start();
                 continue;
             }
             if (toPublicKey.equals(myPublicKey) && sqlTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
                 sqlTable.WriteDB(fromName, packet.getAddress().toString(), fromPublicKey);
             }
         }
+    }
+
+    public void close() {
+        socket.close();
     }
 }
