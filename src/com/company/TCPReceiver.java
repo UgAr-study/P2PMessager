@@ -17,7 +17,7 @@ public class TCPReceiver extends Thread {
             serverSocket = new ServerSocket(port);
             while (true) {
                 socket = serverSocket.accept();
-                new Messanger(socket).start();
+                new Messenger(socket).start();
                 socket.close();
             }
         }catch (Exception e) {
@@ -31,6 +31,4 @@ public class TCPReceiver extends Thread {
         }
 
     }
-
-
 }

@@ -12,13 +12,13 @@ public class MultiCastSender extends Thread{
 
     private static DatagramSocket socket;
     private static InetAddress inetAddress;
-    private static String To, From, PublicKye;
+    private static String ToPublicKye, FromName, FromPublicKye;
     private static final int port = 3000;
 
-    public MultiCastSender(String to, String from, String publicKye) {
-        To = to;
-        From = from;
-        PublicKye = publicKye;
+    public MultiCastSender(String to_pk, String from_name, String from_pk) {
+        ToPublicKye = to_pk;
+        FromName = from_name;
+        FromPublicKye = from_pk;
     }
 
     @Override
@@ -44,7 +44,7 @@ public class MultiCastSender extends Thread{
     }
 
     public static void SendMultiCastHello () throws IOException {
-        String helloMessage = To + "\n" + From + "\n" + PublicKye;
+        String helloMessage = ToPublicKye + "\n" + FromName + "\n" + FromPublicKye;
         byte[] bytes = helloMessage.getBytes();
 
         DatagramPacket packet = new DatagramPacket(bytes, bytes.length, inetAddress, port);
