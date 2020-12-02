@@ -9,7 +9,7 @@ import java.sql.SQLException;
 
 class MulticastReceiver extends Thread{
     protected MulticastSocket socket = null;
-    protected int port = 4446;
+    protected int port = 3000;
     protected String ip = "230.0.0.1";
     protected SQLTable sqlTable;
     protected String myName;
@@ -54,12 +54,15 @@ class MulticastReceiver extends Thread{
             }
             String receivdMsg = new String(packet.getData(), 0, packet.getLength());
             System.out.println("Receive msg: " + receivdMsg);
-            String[] subString = receivdMsg.split(" ");
+            String[] subString = receivdMsg.split("\n");
             String toPublicKey = subString[0];
             String fromName = subString[1];
             String fromPublicKey = subString[2];
             // Add authorized user
             if (toPublicKey.equals("all")) {
+                if (fromPublicKey.equals(myPublicKey)) {
+                    continue;
+                }
                 System.out.println("Receive 'all'");
                 if (sqlTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
                     sqlTable.WriteDB(fromName, packet.getAddress().toString(), fromPublicKey);
