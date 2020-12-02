@@ -1,0 +1,4 @@
+Multicast message structure:
+    TO: address (name)\n
+    FROM: address (name)\n
+    PUB_KYE: our public kye\n
