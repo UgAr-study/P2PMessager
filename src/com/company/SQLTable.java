@@ -108,6 +108,16 @@ public class SQLTable {
         }
     }
 
+    public String getNameByPublicKey(String publicKey) {
+        try {
+            resSet = statmt.executeQuery("SELECT * FROM '"+ tableName +"' WHERE pub_key = " + publicKey);
+            return resSet.getString("name");
+        } catch (SQLException e) {
+            System.out.println("getNameByPublicKey failed");
+            return "";
+        }
+    }
+
     public boolean DeleteByName (String Name) {
         try {
             statmt.execute("DELETE FROM '"+ tableName +"'WHERE name = '" + Name + "'");
