@@ -15,6 +15,12 @@ public class MultiCastSender extends Thread{
     private static String To, From, PublicKye;
     private static final int port = 3000;
 
+    public MultiCastSender(String to, String from, String publicKye) {
+        To = to;
+        From = from;
+        PublicKye = publicKye;
+    }
+
     @Override
     public void run (){
 
@@ -23,13 +29,9 @@ public class MultiCastSender extends Thread{
             Connect("233.0.0.1");
 
             //send hello message to all
-            GetData("all", "Artem", "12QWERTY");
             SendMultiCastHello();
 
-            //send message to Ignat (after receiving hello from him)
-            GetData("Ignat", "Artem", "12QWERTY");
-            SendMultiCastHello();
-
+            //close socket, cause he is unused
             CloseSocket();
         } catch (Exception e) {
             e.printStackTrace();
@@ -39,12 +41,6 @@ public class MultiCastSender extends Thread{
     public static void Connect (String host) throws SocketException, UnknownHostException{
         socket = new DatagramSocket();
         inetAddress = InetAddress.getByName(host);
-    }
-
-    public static void GetData (String to, String from, String publicKye) {
-        To = to;
-        From = from;
-        PublicKye = publicKye;
     }
 
     public static void SendMultiCastHello () throws IOException {
