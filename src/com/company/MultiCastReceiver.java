@@ -41,6 +41,8 @@ class MulticastReceiver extends Thread{
             e.printStackTrace();
         }
 
+        System.out.println("Join group");
+
         byte[] buf = new byte[256];
 
         while(true) {
@@ -51,12 +53,14 @@ class MulticastReceiver extends Thread{
                 e.printStackTrace();
             }
             String receivdMsg = new String(packet.getData(), 0, packet.getLength());
+            System.out.println("Receive msg: " + receivdMsg);
             String[] subString = receivdMsg.split(" ");
             String toPublicKey = subString[0];
             String fromName = subString[1];
             String fromPublicKey = subString[2];
             // Add authorized user
             if (toPublicKey.equals("all")) {
+                System.out.println("Receive 'all'");
                 if (sqlTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
                     sqlTable.WriteDB(fromName, packet.getAddress().toString(), fromPublicKey);
                 }
@@ -64,6 +68,7 @@ class MulticastReceiver extends Thread{
                 continue;
             }
             if (toPublicKey.equals(myPublicKey) && sqlTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
+                System.out.println("Receive 'personal msg'");
                 sqlTable.WriteDB(fromName, packet.getAddress().toString(), fromPublicKey);
             }
         }
