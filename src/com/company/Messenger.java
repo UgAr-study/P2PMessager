@@ -10,6 +10,10 @@ public class Messenger extends Thread{
     private BufferedWriter out;
     private BufferedReader in;
 
+    public Messenger(Socket socket) {
+        
+    }
+
     public void run() {
         String string = "";
         try {
@@ -18,12 +22,6 @@ public class Messenger extends Thread{
             e.printStackTrace();
         }
         System.out.println(string);
-    }
-    
-    public void connect(InetAddress ip, int port) throws IOException {
-        socket = new Socket(ip, port);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
     }
 
     public void read(String string) throws IOException {
