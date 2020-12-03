@@ -18,6 +18,8 @@ public class Messenger extends Thread {
 
     public void run() {
 
+        System.out.println("Messenger run");
+
         try {
             new SendMessages(socket).start();
         }catch (IOException e) {
@@ -65,12 +67,13 @@ class SendMessages extends Thread {
     }
 
     public void run() {
-        String dataOut = null;
+        String dataOut = "Hello, Ignat from Artem";
 
         while (true) {
             try {
-                dataOut = usrData.readLine();
-
+                System.out.println("Input data");
+                //dataOut = usrData.readLine();
+                System.out.println("Data was inputed");
                 if (dataOut.equals("end")) {
                     out.writeUTF(dataOut);
                     out.flush();

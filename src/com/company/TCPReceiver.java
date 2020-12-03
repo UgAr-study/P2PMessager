@@ -18,7 +18,7 @@ public class TCPReceiver extends Thread {
             while (true) {
                 socket = serverSocket.accept();
                 new Messenger(socket).start();
-                socket.close();
+                //socket.close();
             }
         }catch (Exception e) {
             e.printStackTrace();

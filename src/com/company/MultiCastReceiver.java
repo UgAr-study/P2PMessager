@@ -9,8 +9,8 @@ import java.sql.SQLException;
 
 class MulticastReceiver extends Thread{
     protected MulticastSocket socket = null;
-    protected int port = 3000;
-    protected String ip = "230.0.0.1";
+    protected int port = 1234;
+    protected String ip = "229.1.2.3";
     protected SQLTable sqlTable;
     protected String myName;
     protected String myPublicKey;
@@ -53,11 +53,12 @@ class MulticastReceiver extends Thread{
                 e.printStackTrace();
             }
             String receivdMsg = new String(packet.getData(), 0, packet.getLength());
-            System.out.println("Receive msg: " + receivdMsg);
+            System.out.println("Receive msg:\n" + receivdMsg);
             String[] subString = receivdMsg.split("\n");
             String toPublicKey = subString[0];
             String fromName = subString[1];
             String fromPublicKey = subString[2];
+            //System.out.println("packet address from Ignat" + packet.getAddress().toString());
             // Add authorized user
             if (toPublicKey.equals("all")) {
                 if (fromPublicKey.equals(myPublicKey)) {
@@ -65,14 +66,15 @@ class MulticastReceiver extends Thread{
                 }
                 System.out.println("Receive 'all'");
                 if (sqlTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
-                    sqlTable.WriteDB(fromName, packet.getAddress().toString(), fromPublicKey);
+                    //String ip = packet.getAddress().toString().substring(1);
+                    sqlTable.WriteDB(fromName, packet.getAddress().toString().substring(1), fromPublicKey);
                 }
-                new MultiCastSender(myPublicKey, myName, fromPublicKey).start();
+                new MultiCastSender(fromPublicKey, myName, myPublicKey).start();
                 continue;
             }
             if (toPublicKey.equals(myPublicKey) && sqlTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
                 System.out.println("Receive 'personal msg'");
-                sqlTable.WriteDB(fromName, packet.getAddress().toString(), fromPublicKey);
+                sqlTable.WriteDB(fromName, packet.getAddress().toString().substring(1), fromPublicKey);
             }
         }
     }

@@ -13,7 +13,7 @@ public class MultiCastSender extends Thread{
     private static DatagramSocket socket;
     private static InetAddress inetAddress;
     private static String ToPublicKye, FromName, FromPublicKye;
-    private static final int port = 3000;
+    private static final int port = 1234;
 
     public MultiCastSender(String to_pk, String from_name, String from_pk) {
         ToPublicKye = to_pk;
@@ -27,7 +27,7 @@ public class MultiCastSender extends Thread{
         try {
             //get connection with this group
             System.out.println("MC Connecting");
-            Connect("233.0.0.1");
+            Connect("229.1.2.3");
 
             //send hello message to all
             System.out.println("MC Sending");
