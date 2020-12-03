@@ -1,4 +1,0 @@
-Multicast message structure:
-    TO: public kye
-    FROM (name): address (name)\n
-    FROM (public key): public key
