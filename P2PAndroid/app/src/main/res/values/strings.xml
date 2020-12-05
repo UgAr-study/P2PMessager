@@ -1,10 +1,10 @@
 <resources>
     <string name="app_name">P2PAndroid</string>
     <string name="enter_hint">Enter the message</string>
-    <string name="send_button">Send</string>
+    <string name="send_button">S</string>
     <string name="greating">Hello!</string>
     <string name="login">Sign up</string>
     <string name="login_hint">Enter your login</string>
     <string name="password_hint">Enter password</string>
-    <string name="sign_button">Sign in</string>
+    <string name="sign_button">Sign up</string>
 </resources>
