@@ -1,13 +1,10 @@
-
 package com.company;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 
+import java.lang.reflect.GenericDeclaration;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
@@ -36,12 +33,13 @@ public class AsymCryptography {
 
     public PublicKey generateNewPair(String pwd) throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(512);
+        keyPairGenerator.initialize(4096);
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         keyStore = new File(path);
         FileOutputStream fileOutputStream = new FileOutputStream(keyStore);
         fileOutputStream.write(keyPair.getPrivate().toString().getBytes());
         publicKey = keyPair.getPublic();
+        privateKey = keyPair.getPrivate();
         return keyPair.getPublic();
     }
 
@@ -57,7 +55,7 @@ public class AsymCryptography {
     }
 
     public PublicKey getPublicKeyFromString(String keyStr) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        byte[] data = Base64.getDecoder().decode((keyStr.getBytes()));
+        byte[] data = Base64.getDecoder().decode((keyStr.getBytes(StandardCharsets.UTF_8)));
         X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
         KeyFactory fact = KeyFactory.getInstance("RSA");
         return fact.generatePublic(spec);
@@ -72,6 +70,18 @@ public class AsymCryptography {
         return new BigInteger(modulusStr);
     }
 
+    public String getStringPublicKey() {
+        byte [] byte_pubkey = publicKey.getEncoded();
+        String str_key = Base64.getEncoder().encodeToString(byte_pubkey);
+        return str_key;
+    }
+
+    private String getStringPrivateKey() {
+        byte [] byte_prkey = privateKey.getEncoded();
+        String str_key = Base64.getEncoder().encodeToString(byte_prkey);
+        return str_key;
+    }
+
     private BigInteger readExponent() throws IOException {
         FileInputStream fileInputStream = new FileInputStream(keyStore);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
@@ -82,7 +92,7 @@ public class AsymCryptography {
         return new BigInteger(exponentStr);
     }
 
-    private void loadPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public void loadPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         BigInteger modulus = readModulus();
         BigInteger prExponent = readExponent();
         RSAPrivateKeySpec privateSpec = new RSAPrivateKeySpec(modulus, prExponent);
@@ -90,20 +100,19 @@ public class AsymCryptography {
         privateKey = factory.generatePrivate(privateSpec);
     }
 
-    public byte[] encryptMsg(String msg, String publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException {
-
+    public SealedObject encryptMsg(String msg, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException, IOException {
         Cipher encrypt=Cipher.getInstance("RSA");
         try {
-            encrypt.init(Cipher.ENCRYPT_MODE, getPublicKeyFromString(publicKey));
+            encrypt.init(Cipher.ENCRYPT_MODE, publicKey);
         }
         catch (InvalidKeyException e) {
             e.getMessage();
             System.err.println("an attempt was made to encrypt empty text and the private key was not loaded");
         }
-        return encrypt.doFinal(msg.getBytes(StandardCharsets.UTF_8));
+        return new SealedObject( msg, encrypt);
     }
 
-    public String decryptMsg(byte[] msg) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException, IllegalBlockSizeException {
+    public String decryptMsg(SealedObject encryptMsg) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException, IllegalBlockSizeException, IOException, ClassNotFoundException {
         Cipher decrypt = Cipher.getInstance("RSA");
         try {
             decrypt.init(Cipher.DECRYPT_MODE, privateKey);
@@ -112,6 +121,6 @@ public class AsymCryptography {
             e.getMessage();
             System.err.println("an attempt was made to encrypt empty text and the private key was not loaded");
         }
-        return decrypt.doFinal(msg).toString();
+        return (String) encryptMsg.getObject(decrypt);
     }
 }
