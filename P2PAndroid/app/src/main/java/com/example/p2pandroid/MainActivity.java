@@ -2,6 +2,7 @@ package com.example.p2pandroid;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -12,11 +13,24 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    private String userName;
+    private String userPassword;
+    private String userPublicKye;
+    private SQLDataBase UsersTable;
+
     private String[] users = { "Artem", "Ignat"};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Intent intent = getIntent();
+        userName = intent.getStringExtra(LoginActivity.EXTRA_LOGIN);
+        userPassword = intent.getStringExtra(LoginActivity.EXTRA_PASSWORD);
+
+        UsersTable = new SQLDataBase(this);
 
         Spinner usersList = findViewById(R.id.userList);
 
@@ -44,12 +58,14 @@ public class MainActivity extends AppCompatActivity {
 
         String text = pubKey.get(0) + "\n";
 
-        for (String cn : ips) {
-            text = text.concat(cn + "\n");
-        }
+        for (int i = 0; i < 3; ++i) {
+            for (String cn : ips) {
+                text = text.concat(cn + "\n");
+            }
 
-        for (String cn : ids) {
-            text = text.concat(cn + "\n");
+            for (String cn : ids) {
+                text = text.concat(cn + "\n");
+            }
         }
 
         textField.setText(text);

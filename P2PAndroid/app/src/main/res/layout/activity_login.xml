@@ -61,7 +61,8 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         android:text="@string/sign_button"
-        android:textSize="24sp"/>
+        android:textSize="24sp"
+        android:onClick="onClickSignUpButton"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
