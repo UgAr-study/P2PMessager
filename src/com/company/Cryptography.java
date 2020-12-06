@@ -17,14 +17,14 @@ import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
-public class AsymCryptography {
+public class Cryptography {
     protected File keyStore;
     protected String path = "res/KeyStore";
     protected String alias = "msg-key";
     private PrivateKey privateKey = null;
     private PublicKey publicKey = null;
 
-    public AsymCryptography (String pwd) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, IOException, KeyStoreException, NoSuchAlgorithmException {
+    public Cryptography(String pwd) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, IOException, KeyStoreException, NoSuchAlgorithmException {
         keyStore = new File(path);
         if (!keyStore.exists()) {
             keyStore.createNewFile();
