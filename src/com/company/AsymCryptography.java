@@ -17,29 +17,23 @@ import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
-public class Cryptography {
-    protected File keyStore;
-    protected String path = "res/KeyStore";
-    protected String alias = "msg-key";
+public class AsymCryptography {
+    private static String path = "res/KeyStore";
     private PrivateKey privateKey = null;
     private PublicKey publicKey = null;
 
-    public Cryptography(String pwd) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, IOException, KeyStoreException, NoSuchAlgorithmException {
-        keyStore = new File(path);
-        if (!keyStore.exists()) {
-            keyStore.createNewFile();
-        }
-    }
-
-    public PublicKey generateNewPair(String pwd) throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException {
+    static public PublicKey generateNewPair(String pwd) throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(4096);
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
-        keyStore = new File(path);
+        File keyStore = new File(path);
+        if (!keyStore.exists()) {
+            keyStore.createNewFile();
+        }
         FileOutputStream fileOutputStream = new FileOutputStream(keyStore);
         fileOutputStream.write(keyPair.getPrivate().toString().getBytes());
-        publicKey = keyPair.getPublic();
-        privateKey = keyPair.getPrivate();
+        PublicKey publicKey = keyPair.getPublic();
+        PrivateKey privateKey = keyPair.getPrivate();
         return keyPair.getPublic();
     }
 
@@ -61,8 +55,8 @@ public class Cryptography {
         return fact.generatePublic(spec);
     }
 
-    private BigInteger readModulus() throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(keyStore);
+    private BigInteger readModulus(String pathKS) throws IOException {
+        FileInputStream fileInputStream = new FileInputStream(pathKS);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
         bufferedReader.readLine();
         bufferedReader.readLine();
@@ -70,10 +64,18 @@ public class Cryptography {
         return new BigInteger(modulusStr);
     }
 
-    public String getStringPublicKey() {
+    private BigInteger readModulus() throws IOException {
+        return readModulus(path);
+    }
+
+        public String getStringPublicKey() {
         byte [] byte_pubkey = publicKey.getEncoded();
-        String str_key = Base64.getEncoder().encodeToString(byte_pubkey);
-        return str_key;
+        return Base64.getEncoder().encodeToString(byte_pubkey);
+    }
+
+    static public String getStringPublicKey(PublicKey pubKey) {
+        byte [] byte_pubkey = pubKey.getEncoded();
+        return Base64.getEncoder().encodeToString(byte_pubkey);
     }
 
     private String getStringPrivateKey() {
@@ -82,8 +84,8 @@ public class Cryptography {
         return str_key;
     }
 
-    private BigInteger readExponent() throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(keyStore);
+    private BigInteger readExponent(String pathKS) throws IOException {
+        FileInputStream fileInputStream = new FileInputStream(pathKS);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
         bufferedReader.readLine();
         bufferedReader.readLine();
@@ -92,15 +94,23 @@ public class Cryptography {
         return new BigInteger(exponentStr);
     }
 
-    public void loadPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        BigInteger modulus = readModulus();
-        BigInteger prExponent = readExponent();
+    private BigInteger readExponent() throws IOException {
+        return readExponent(path);
+    }
+
+    public void loadPrivateKey(String pathKS) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        BigInteger modulus = readModulus(pathKS);
+        BigInteger prExponent = readExponent(pathKS);
         RSAPrivateKeySpec privateSpec = new RSAPrivateKeySpec(modulus, prExponent);
         KeyFactory factory = KeyFactory.getInstance("RSA");
         privateKey = factory.generatePrivate(privateSpec);
     }
 
-    public SealedObject encryptMsg(String msg, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException, IOException {
+    public void loadPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        loadPrivateKey(path);
+    }
+
+        public SealedObject encryptMsg(String msg, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException, IOException {
         Cipher encrypt=Cipher.getInstance("RSA");
         try {
             encrypt.init(Cipher.ENCRYPT_MODE, publicKey);
