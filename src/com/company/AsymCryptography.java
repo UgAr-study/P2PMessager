@@ -18,7 +18,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class AsymCryptography {
-    private static String path = "res/KeyStore";
+    private static String path = "res/AsymKeyStore";
     private PrivateKey privateKey = null;
     private PublicKey publicKey = null;
 
@@ -80,8 +80,7 @@ public class AsymCryptography {
 
     private String getStringPrivateKey() {
         byte [] byte_prkey = privateKey.getEncoded();
-        String str_key = Base64.getEncoder().encodeToString(byte_prkey);
-        return str_key;
+        return Base64.getEncoder().encodeToString(byte_prkey);
     }
 
     private BigInteger readExponent(String pathKS) throws IOException {
@@ -110,7 +109,7 @@ public class AsymCryptography {
         loadPrivateKey(path);
     }
 
-        public SealedObject encryptMsg(String msg, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException, IOException {
+    public SealedObject encryptMsg(String msg, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException, IOException {
         Cipher encrypt=Cipher.getInstance("RSA");
         try {
             encrypt.init(Cipher.ENCRYPT_MODE, publicKey);
