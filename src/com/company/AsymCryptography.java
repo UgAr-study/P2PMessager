@@ -55,12 +55,10 @@ public class AsymCryptography {
         return fact.generatePublic(spec);
     }
 
-    private BigInteger readModulusFromString(String keyData) throws IOException {
-        //TODO
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
-        bufferedReader.readLine();
-        bufferedReader.readLine();
-        String modulusStr = bufferedReader.readLine().substring(11);
+    private BigInteger readModulusFromString(String keyData) {
+        int begin = keyData.lastIndexOf("modulus");
+        int end = keyData.indexOf('\n', begin);
+        String modulusStr = keyData.substring(begin + 9, end);
         return new BigInteger(modulusStr);
     }
 
@@ -69,39 +67,26 @@ public class AsymCryptography {
         return Base64.getEncoder().encodeToString(byte_pubkey);
     }
 
-    private BigInteger readExponent(String pathKS) throws IOException {
-        //TODO
-        FileInputStream fileInputStream = new FileInputStream(pathKS);
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
-        bufferedReader.readLine();
-        bufferedReader.readLine();
-        bufferedReader.readLine();
-        String exponentStr = bufferedReader.readLine().substring(20);
-        return new BigInteger(exponentStr);
+    private BigInteger readExponentFromString(String keyData) {
+        int begin = keyData.lastIndexOf("exponent:");
+        int end = keyData.indexOf('\n', begin);
+        String modulusStr = keyData.substring(begin + 10);
+        return new BigInteger(modulusStr);
     }
 
-    private BigInteger readExponent() throws IOException {
-        return readExponent(path);
-    }
-
-    public void loadPrivateKey(String pathKS, String pwd) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchPaddingException {
-//        BigInteger modulus = readModulus(pathKS);
-//        BigInteger prExponent = readExponent(pathKS);
+    public void loadPrivateKey(String pwd) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchPaddingException {
         InputStream in = new FileInputStream(path);
         ObjectInputStream inputStream = new ObjectInputStream(in);
         SealedObject encryptKeyData = (SealedObject) inputStream.readObject();
         String keyData = SymCryptography.decryptByPwd(encryptKeyData, pwd);
-        //TODO
+        BigInteger modulus = readModulusFromString(keyData);
+        BigInteger prExponent = readExponentFromString(keyData);
         RSAPrivateKeySpec privateSpec = new RSAPrivateKeySpec(modulus, prExponent);
         KeyFactory factory = KeyFactory.getInstance("RSA");
         privateKey = factory.generatePrivate(privateSpec);
     }
 
-    public void loadPrivateKey(String pwd) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, ClassNotFoundException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException {
-        loadPrivateKey(path, pwd);
-    }
-
-    public SealedObject encryptMsg(String msg, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException, IOException {
+    public SealedObject encryptMsg(String msg, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, IOException {
         Cipher encrypt=Cipher.getInstance("RSA");
         try {
             encrypt.init(Cipher.ENCRYPT_MODE, publicKey);
