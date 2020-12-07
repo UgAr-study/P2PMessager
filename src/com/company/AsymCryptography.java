@@ -20,25 +20,25 @@ import java.util.Base64;
 public class AsymCryptography {
     private static String path = "res/AsymKeyStore";
     private PrivateKey privateKey = null;
-    private PublicKey publicKey = null;
 
-    static public PublicKey generateNewPair(String pwd) throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException {
+    static public PublicKey generateNewPair(String pwd) throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, IllegalBlockSizeException, InvalidKeyException, InvalidKeySpecException, NoSuchPaddingException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(4096);
+        keyPairGenerator.initialize(1024);
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
         File keyStore = new File(path);
         if (!keyStore.exists()) {
             keyStore.createNewFile();
         }
         FileOutputStream fileOutputStream = new FileOutputStream(keyStore);
-        fileOutputStream.write(keyPair.getPrivate().toString().getBytes());
-        PublicKey publicKey = keyPair.getPublic();
-        PrivateKey privateKey = keyPair.getPrivate();
-        return keyPair.getPublic();
-    }
+        SealedObject encryptKey = SymCryptography.encryptByPwd(keyPair.getPrivate().toString(), pwd);
+        ObjectOutputStream outputStream = new ObjectOutputStream(fileOutputStream);
 
-    public PublicKey getPublicKey() {
-        return publicKey;
+        outputStream.writeObject(encryptKey);
+
+        keyStore.setReadOnly();
+
+        return keyPair.getPublic();
     }
     
     public PrivateKey getPrivateKeyFromString(String keyStr) throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -55,8 +55,8 @@ public class AsymCryptography {
         return fact.generatePublic(spec);
     }
 
-    private BigInteger readModulus(String pathKS) throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(pathKS);
+    private BigInteger readModulusFromString(String keyData) throws IOException {
+        //TODO
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
         bufferedReader.readLine();
         bufferedReader.readLine();
@@ -64,26 +64,13 @@ public class AsymCryptography {
         return new BigInteger(modulusStr);
     }
 
-    private BigInteger readModulus() throws IOException {
-        return readModulus(path);
-    }
-
-        public String getStringPublicKey() {
-        byte [] byte_pubkey = publicKey.getEncoded();
-        return Base64.getEncoder().encodeToString(byte_pubkey);
-    }
-
-    static public String getStringPublicKey(PublicKey pubKey) {
+    static public String getStringAsymKey(PublicKey pubKey) {
         byte [] byte_pubkey = pubKey.getEncoded();
         return Base64.getEncoder().encodeToString(byte_pubkey);
     }
 
-    private String getStringPrivateKey() {
-        byte [] byte_prkey = privateKey.getEncoded();
-        return Base64.getEncoder().encodeToString(byte_prkey);
-    }
-
     private BigInteger readExponent(String pathKS) throws IOException {
+        //TODO
         FileInputStream fileInputStream = new FileInputStream(pathKS);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
         bufferedReader.readLine();
@@ -97,16 +84,21 @@ public class AsymCryptography {
         return readExponent(path);
     }
 
-    public void loadPrivateKey(String pathKS) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        BigInteger modulus = readModulus(pathKS);
-        BigInteger prExponent = readExponent(pathKS);
+    public void loadPrivateKey(String pathKS, String pwd) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchPaddingException {
+//        BigInteger modulus = readModulus(pathKS);
+//        BigInteger prExponent = readExponent(pathKS);
+        InputStream in = new FileInputStream(path);
+        ObjectInputStream inputStream = new ObjectInputStream(in);
+        SealedObject encryptKeyData = (SealedObject) inputStream.readObject();
+        String keyData = SymCryptography.decryptByPwd(encryptKeyData, pwd);
+        //TODO
         RSAPrivateKeySpec privateSpec = new RSAPrivateKeySpec(modulus, prExponent);
         KeyFactory factory = KeyFactory.getInstance("RSA");
         privateKey = factory.generatePrivate(privateSpec);
     }
 
-    public void loadPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        loadPrivateKey(path);
+    public void loadPrivateKey(String pwd) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, ClassNotFoundException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException {
+        loadPrivateKey(path, pwd);
     }
 
     public SealedObject encryptMsg(String msg, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException, IOException {
