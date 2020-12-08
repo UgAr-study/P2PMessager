@@ -18,12 +18,13 @@ public class SQLDataBase {
         helper = new SQLHelper(context);
     }
 
-    public void WriteDB (String name, String ip, String publicKey) {
+    public void WriteDB (String name, String ip, String publicKey, String encryptAESKey) {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(SQLHelper.KEY_NAME, name);
         contentValues.put(SQLHelper.KEY_IP_ADDRESS, ip);
         contentValues.put(SQLHelper.KEY_PUBLIC_KEY, publicKey);
+        contentValues.put(SQLHelper.KEY_ENCRYPT_AES_KEY, encryptAESKey);
 
         SQLiteDatabase dataBase = helper.getWritableDatabase();
         dataBase.insert(SQLHelper.TABLE_NAME, null, contentValues);
@@ -82,6 +83,9 @@ public class SQLDataBase {
         return getAllRowsInColumn(SQLHelper.KEY_IP_ADDRESS);
     }
 
+	public ArrayList<String> getAllAESKeys () {
+        return getAllRowsInColumn(SQLHelper.KEY_ENCRYPT_AES_KEY);
+    }
 
     private ArrayList<String> getCells (String Column, String row, String rowArg) {
 
@@ -157,6 +161,18 @@ public class SQLDataBase {
         return getCells(SQLHelper.KEY_NAME, SQLHelper.KEY_PUBLIC_KEY, publicKey);
     }
 
+    public ArrayList<Strig> getAESKeyByPublicKey (String publicKey) {
+    	return getCells(SQLHelper.KEY_ENCRYPT_AES_KEY, SQLHelper.KEY_PUBLIC_KEY, publicKey);
+    }
+
+    public ArrayList<Strig> getAESKeyByName (String name) {
+    	return getCells(SQLHelper.KEY_ENCRYPT_AES_KEY, SQLHelper.KEY_NAME, name);
+    }
+
+
+    public ArrayList<Strig> getAESKeyByIp (String ip) {
+    	return getCells(SQLHelper.KEY_ENCRYPT_AES_KEY, SQLHelper.KEY_IP_ADDRESS, ip);
+    }
 
     public boolean deleteInfoBySign (String row, String rowArg) {
         SQLiteDatabase db = helper.getWritableDatabase();
@@ -196,7 +212,7 @@ class SQLHelper extends SQLiteOpenHelper {
     public static final String KEY_NAME = "name";
     public static final String KEY_IP_ADDRESS = "ipAddress";
     public static final String KEY_PUBLIC_KEY = "publicKey";
-
+    public static final String KEY_ENCRYPT_AES_KEY = "encryptAESKey";
 
     public SQLHelper(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -205,7 +221,7 @@ class SQLHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table " + TABLE_NAME + "(" + KEY_ID + " integer primary key," + KEY_NAME + " text," +
-                KEY_IP_ADDRESS + " text," + KEY_PUBLIC_KEY + " text);");
+                KEY_IP_ADDRESS + " text," + KEY_PUBLIC_KEY + " text," + KEY_ENCRYPT_AES_KEY + " text);");
     }
 
     @Override
