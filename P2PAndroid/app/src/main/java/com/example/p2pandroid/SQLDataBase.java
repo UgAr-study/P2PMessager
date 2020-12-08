@@ -31,7 +31,59 @@ public class SQLDataBase {
         helper.close();
     }
 
-    public ArrayList<String> getCells (String Column, String row, String rowArg) {
+    public Cursor getAllData () {
+        SQLiteDatabase db = helper.getReadableDatabase();
+        String[] cols = new String[] { SQLHelper.KEY_NAME };
+        Cursor c = db.query(SQLHelper.TABLE_NAME, cols, null, null, null, null, null);
+        c.moveToFirst();
+        return c;
+    }
+
+    private ArrayList<String> getAllRowsInColumn (String column) {
+        ArrayList<String> res = new ArrayList<>();
+
+        SQLiteDatabase db = helper.getReadableDatabase();
+        String[] columns = new String[] { column };
+
+        Cursor cursor = db.query(SQLHelper.TABLE_NAME, columns,
+                null, null, null, null, SQLHelper.KEY_ID);
+
+        if (cursor.getCount() == 0) {
+
+            cursor.close();
+            res.add("No suggestions");
+            return res;
+
+        } else {
+            if (!cursor.moveToFirst()) {
+                cursor.close();
+                res.add("No strings");
+                return res;
+            }
+
+            do {
+                res.add(cursor.getString(cursor.getColumnIndex(column)));
+            } while (cursor.moveToNext());
+
+            cursor.close();
+            return res;
+        }
+    }
+
+    public ArrayList<String> getAllNames () {
+        return getAllRowsInColumn(SQLHelper.KEY_NAME);
+    }
+
+    public ArrayList<String> getAllPublicKeys () {
+        return getAllRowsInColumn(SQLHelper.KEY_PUBLIC_KEY);
+    }
+
+    public ArrayList<String> getAllIpAddresses () {
+        return getAllRowsInColumn(SQLHelper.KEY_IP_ADDRESS);
+    }
+
+
+    private ArrayList<String> getCells (String Column, String row, String rowArg) {
 
         ArrayList<String> res = new ArrayList<>();
 
