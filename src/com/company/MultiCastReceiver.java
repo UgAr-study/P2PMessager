@@ -6,19 +6,20 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 class MulticastReceiver extends Thread{
     protected MulticastSocket socket = null;
     protected int port = 1234;
     protected String ip = "229.1.2.3";
-    protected SQLTable sqlTable;
+    protected SQLDataBase sqlTable;
     protected String myName;
     protected String myPublicKey;
 
-    public MulticastReceiver(SQLTable tableInput) {
+    public MulticastReceiver(SQLDataBase tableInput) {
         sqlTable = tableInput;
-        myName = sqlTable.getNameById(1);
-        myPublicKey = sqlTable.getPublicKeyById(1);
+        ArrayList<String> namesWithId = sqlTable.getNameById(String.valueOf(1));
+        myPublicKey = sqlTable.getPublicKeyById(namesWithId.get(0)).get(0);
     }
 
     public void run() {
