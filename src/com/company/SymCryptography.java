@@ -43,6 +43,13 @@ class SymCryptography {
         return mac.doFinal(data);
     }
 
+    static public byte[] getMacMsg(String msg, SecretKey key) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(key);
+        byte[] data = msg.getBytes("UTF-8");
+        return mac.doFinal(data);
+    }
+
     static public SealedObject encryptByPwd(String msg, String pwd) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IOException, IllegalBlockSizeException, InvalidKeySpecException {
         SecretKey key = generateAESKeyByPwd(pwd);
 
