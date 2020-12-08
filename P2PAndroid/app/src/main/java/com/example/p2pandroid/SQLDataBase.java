@@ -53,14 +53,6 @@ public class SQLDataBase {
         return c;
     }
 
-    public Cursor getAllData () {
-        SQLiteDatabase db = helper.getReadableDatabase();
-        String[] cols = new String[] { SQLHelper.KEY_NAME };
-        Cursor c = db.query(SQLHelper.TABLE_NAME, cols, null, null, null, null, null);
-        c.moveToFirst();
-        return c;
-    }
-
     private ArrayList<String> getAllRowsInColumn (String column) {
         ArrayList<String> res = new ArrayList<>();
 
@@ -193,6 +185,20 @@ public class SQLDataBase {
 
     public ArrayList<String> getAESKeyByIp (String ip) {
     	return getCells(SQLHelper.KEY_ENCRYPT_AES_KEY, SQLHelper.KEY_IP_ADDRESS, ip);
+    }
+
+    public boolean updateAESKeyByPublicKey (String aesKey, String publicKey) {
+    	ContentValues val = new ContentValues ();
+    	val.put (SQLHelper.KEY_ENCRYPT_AES_KEY, aesKey);
+
+    	return update(SQLHelper.DATABASE_NAME, val, SQLHelper.KEY_PUBLIC_KEY + " = ?", new String[] {SQLHelper.KEY_ID});
+    }
+
+    public boolean updateIpByPublicKey (String ip, String publicKey) {
+    	ContentValues val = new ContentValues ();
+    	val.put (SQLHelper.KEY_IP_ADDRESS, ip);
+
+    	return update(SQLHelper.DATABASE_NAME, val, SQLHelper.KEY_PUBLIC_KEY + " = ?", new String[] {SQLHelper.KEY_IP_ADDRESS});
     }
 
     public boolean deleteInfoBySign (String row, String rowArg) {
