@@ -32,6 +32,27 @@ public class SQLDataBase {
         helper.close();
     }
 
+	public void WriteDB (String name, String ip, String publicKey) {
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(SQLHelper.KEY_NAME, name);
+        contentValues.put(SQLHelper.KEY_IP_ADDRESS, ip);
+        contentValues.put(SQLHelper.KEY_PUBLIC_KEY, publicKey);
+
+        SQLiteDatabase dataBase = helper.getWritableDatabase();
+        dataBase.insert(SQLHelper.TABLE_NAME, null, contentValues);
+
+        helper.close();
+    }
+
+    public Cursor getAllData () {
+        SQLiteDatabase db = helper.getReadableDatabase();
+        String[] cols = new String[] { SQLHelper.KEY_NAME };
+        Cursor c = db.query(SQLHelper.TABLE_NAME, cols, null, null, null, null, null);
+        c.moveToFirst();
+        return c;
+    }
+
     public Cursor getAllData () {
         SQLiteDatabase db = helper.getReadableDatabase();
         String[] cols = new String[] { SQLHelper.KEY_NAME };
@@ -161,16 +182,16 @@ public class SQLDataBase {
         return getCells(SQLHelper.KEY_NAME, SQLHelper.KEY_PUBLIC_KEY, publicKey);
     }
 
-    public ArrayList<Strig> getAESKeyByPublicKey (String publicKey) {
+    public ArrayList<String> getAESKeyByPublicKey (String publicKey) {
     	return getCells(SQLHelper.KEY_ENCRYPT_AES_KEY, SQLHelper.KEY_PUBLIC_KEY, publicKey);
     }
 
-    public ArrayList<Strig> getAESKeyByName (String name) {
+    public ArrayList<String> getAESKeyByName (String name) {
     	return getCells(SQLHelper.KEY_ENCRYPT_AES_KEY, SQLHelper.KEY_NAME, name);
     }
 
 
-    public ArrayList<Strig> getAESKeyByIp (String ip) {
+    public ArrayList<String> getAESKeyByIp (String ip) {
     	return getCells(SQLHelper.KEY_ENCRYPT_AES_KEY, SQLHelper.KEY_IP_ADDRESS, ip);
     }
 
