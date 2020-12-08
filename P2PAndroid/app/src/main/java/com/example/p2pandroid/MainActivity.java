@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.company.AsymCryptography;
+import com.company.Messenger;
 import com.company.MultiCastSender;
 import com.company.TCPReceiver;
 import com.company.MultiCastReceiver;
@@ -82,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
         UsersTable.WriteDB(userName, userIpAddress, userPublicKye);
 
+
         //new MultiCastReceiver(UsersTable).start();
         //new TCPReceiver().start();
         //new MultiCastSender("all", userName, userPublicKye).start();
@@ -90,22 +92,30 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickSendButton (View v) {
 
+        Spinner spinner = findViewById(R.id.userList);
+
+        int position = spinner.getSelectedItemPosition();
+
+        ArrayList<String> publicKeys = UsersTable.getAllPublicKeys();
+        String selectedPublicKey = publicKeys.get(position);
+
+    }
+
+    public void onClickTestButton (View v) {
         TextView textField = findViewById(R.id.textField);
         textField.setText("TextView");
         textField.setTextSize(24);
 
-        SQLDataBase usersInfo = new SQLDataBase(this);
-
-        usersInfo.WriteDB("Ignat", "192.168.43.78", "12QWRTY");
-        usersInfo.WriteDB("Nikita", "192.168.43.79", "56RYUEW");
+        UsersTable.WriteDB("Ignat", "192.168.43.78", "12QWRTY");
+        UsersTable.WriteDB("Nikita", "192.168.43.79", "56RYUEW");
 
 
         cursorAdapter.notifyDataSetChanged();
 
 
-        ArrayList<String> ips = usersInfo.getIpAddressByName("Artem");
-        ArrayList<String> ids = usersInfo.getIdByName("Artem");
-        ArrayList<String> pubKey = usersInfo.getPublicKeyById(ids.get(0));
+        ArrayList<String> ips = UsersTable.getIpAddressByName("Artem");
+        ArrayList<String> ids = UsersTable.getIdByName("Artem");
+        ArrayList<String> pubKey = UsersTable.getPublicKeyById(ids.get(0));
 
         String text = pubKey.get(0) + "\n";
 
@@ -121,9 +131,9 @@ public class MainActivity extends AppCompatActivity {
 
         textField.setText(text);
 
-        //usersInfo.deleteInfoByName("Artem");
-        //usersInfo.deleteInfoByName("Ignat");
-        //usersInfo.deleteInfoByName("Nikita");
+        UsersTable.deleteInfoByName("Artem");
+        UsersTable.deleteInfoByName("Ignat");
+        UsersTable.deleteInfoByName("Nikita");
 
     }
 }

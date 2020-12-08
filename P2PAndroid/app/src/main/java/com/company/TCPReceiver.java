@@ -1,5 +1,11 @@
 package com.company;
 
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.view.View;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -10,6 +16,11 @@ public class TCPReceiver extends Thread {
     private Socket socket;
     private ServerSocket serverSocket;
     private final int port = 4000;
+    private View v;
+
+    public TCPReceiver(View view) {
+        v = view;
+    }
 
     @Override
     public void run() {
@@ -17,8 +28,16 @@ public class TCPReceiver extends Thread {
             serverSocket = new ServerSocket(port);
             while (true) {
                 socket = serverSocket.accept();
+
+                Handler mHandler = new Handler(Looper.getMainLooper()) {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        Bundle b = msg.getData();
+                        b.get("Msg");
+                    }
+                };
+
                 new Messenger(socket).start();
-                //socket.close();
             }
         }catch (Exception e) {
             e.printStackTrace();
@@ -31,4 +50,11 @@ public class TCPReceiver extends Thread {
         }
 
     }
+}
+
+class ReceiveMessage {
+    private View v;
+
+
+
 }
