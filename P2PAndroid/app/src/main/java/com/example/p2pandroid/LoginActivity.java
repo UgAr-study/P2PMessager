@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.company.AsymCryptography;
@@ -15,6 +16,8 @@ import com.company.TCPReceiver;
 import com.company.MultiCastReceiver;
 
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.interfaces.RSAKey;
 import java.security.interfaces.RSAPublicKey;
 
@@ -33,6 +36,20 @@ public class LoginActivity extends AppCompatActivity {
 
         loginField    = findViewById(R.id.login);
         passwordField = findViewById(R.id.password);
+
+        /*TextView locIp = findViewById(R.id.localAddress);
+        String myIp = null;
+        try {
+            myIp = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            Toast.makeText(this, "Cannot get my ip", Toast.LENGTH_SHORT).show();
+        }
+
+        if (myIp != null)  {
+            locIp.setText(myIp);
+        } else {
+            locIp.setText("Oooops");
+        }*/
     }
 
     public void onClickSignUpButton (View v) {

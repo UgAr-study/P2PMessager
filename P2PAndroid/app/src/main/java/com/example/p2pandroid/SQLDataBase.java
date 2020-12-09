@@ -114,9 +114,8 @@ public class SQLDataBase {
                 null, null, null);
 
         if (cursor.getCount() == 0) {
-
             cursor.close();
-            res.add("No suggestions");
+            db.close();
             return res;
 
         } else {
@@ -125,14 +124,14 @@ public class SQLDataBase {
 
             if ((index = cursor.getColumnIndex(Column)) == -1) {
                 cursor.close();
-                res.add("No such column");
+                db.close();
                 return res;
 
             } else {
 
                 if (!cursor.moveToFirst()) {
                     cursor.close();
-                    res.add("No strings");
+                    db.close();
                     return res;
                 }
 
@@ -141,6 +140,7 @@ public class SQLDataBase {
                 } while (cursor.moveToNext());
 
                 cursor.close();
+                db.close();
                 return res;
             }
         }
@@ -233,7 +233,7 @@ class SQLHelper extends SQLiteOpenHelper {
 
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "USERS";
-    public static final String TABLE_NAME = "usersContacts";
+    public static final String TABLE_NAME = "UsersContacts";
 
     public static final String KEY_ID = "_id";
     public static final String KEY_NAME = "name";

@@ -8,76 +8,85 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
+import android.os.Handler;
 
-public class MultiCastReceiver extends Thread{
-    protected MulticastSocket socket = null;
+public class MultiCastReceiver extends Thread {
+
+    protected MulticastSocket socket;
     protected final int port = 1234;
     protected String ip;
     protected SQLDataBase sqlTable;
     protected String myName;
     protected String myPublicKey;
+    InetAddress group;
+    private Handler mHandler;
 
-    public MultiCastReceiver(SQLDataBase tableInput) {
+    public MultiCastReceiver(SQLDataBase tableInput, Handler handler) {
         sqlTable    = tableInput;
-        myName      = sqlTable.getNameById(String.valueOf(1)).get(0);
-        myPublicKey = sqlTable.getPublicKeyById(String.valueOf(1)).get(0);
-        ip          = sqlTable.getIpAddressById(String.valueOf(1)).get(0);
+        //myName      = sqlTable.getNameById(String.valueOf(1)).get(0);
+        //myPublicKey = sqlTable.getPublicKeyById(String.valueOf(1)).get(0);
+        //ip          = sqlTable.getIpAddressById(String.valueOf(1)).get(0);
+        myName = "Artem";
+        myPublicKey = sqlTable.getPublicKeyByName(myName).get(0);
+        ip = sqlTable.getIpAddressByName(myName).get(0);
+        mHandler    = handler;
     }
 
     public void run() {
+
         try {
             socket = new MulticastSocket(port);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        InetAddress group = null;
-        try {
             group = InetAddress.getByName(ip);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-
-        try {
             socket.joinGroup(group);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException e){
+            mHandler.sendEmptyMessage(1);
+            return;
         }
-
-        System.out.println("Join group");
 
         byte[] buf = new byte[256];
 
         while(true) {
+
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
+
             try {
                 socket.receive(packet);
             } catch (IOException e) {
-                e.printStackTrace();
+                mHandler.sendEmptyMessage(2);
+                continue;
             }
-            String receivdMsg = new String(packet.getData(), 0, packet.getLength());
-            System.out.println("Receive msg:\n" + receivdMsg);
-            String[] subString = receivdMsg.split("\n");
+
+            String receivedMsg = new String(packet.getData(), 0, packet.getLength());
+
+            String[] subString = receivedMsg.split("\n");
+
+            if (subString.length < 3) {
+                mHandler.sendEmptyMessage(2);
+                continue;
+            }
+
             String toPublicKey = subString[0];
             String fromName = subString[1];
             String fromPublicKey = subString[2];
-            //System.out.println("packet address from Ignat" + packet.getAddress().toString());
+
             // Add authorized user
             if (toPublicKey.equals("all")) {
+
                 if (fromPublicKey.equals(myPublicKey)) {
                     continue;
                 }
-                System.out.println("Receive 'all'");
+
                 if (sqlTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
                     //String ip = packet.getAddress().toString().substring(1);
                     sqlTable.WriteDB(fromName, packet.getAddress().toString().substring(1), fromPublicKey);
+                    mHandler.sendEmptyMessage(0);
                 }
+
                 new MultiCastSender(fromPublicKey, myName, myPublicKey).start();
-                continue;
-            }
-            if (toPublicKey.equals(myPublicKey) && sqlTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
-                System.out.println("Receive 'personal msg'");
+
+            } else if (toPublicKey.equals(myPublicKey) && sqlTable.getNameByPublicKey(fromPublicKey).isEmpty()) {
                 sqlTable.WriteDB(fromName, packet.getAddress().toString().substring(1), fromPublicKey);
+                mHandler.sendEmptyMessage(0);
             }
         }
     }

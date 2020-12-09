@@ -5,13 +5,46 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 
-public class Messenger extends Thread {
+public abstract class Messenger {
+
+    private static final int serverPort = 4000;
+
+    public static boolean SendMessageToIp (String message, String ipAddress) {
+        try {
+            InetAddress ipAddr = InetAddress.getByName(ipAddress);
+
+            Socket socket = new Socket();
+            socket.connect(new InetSocketAddress(ipAddr, serverPort), 1000);
+
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+
+            out.writeUTF(message);
+            out.flush();
+            out.close();
+
+            socket.close();
+            return true;
+
+        } catch (UnknownHostException e) {
+            return false;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+}
+
+
+class Msg {
     private Socket socket;
     private DataInputStream in;
 
-    public Messenger(Socket socketInput) throws IOException {
+    public Msg(Socket socketInput) throws IOException {
         socket = socketInput;
         in = new DataInputStream(socket.getInputStream());
     }

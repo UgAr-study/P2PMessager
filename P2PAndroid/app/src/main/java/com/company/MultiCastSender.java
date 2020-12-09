@@ -26,20 +26,18 @@ public class MultiCastSender extends Thread{
 
         try {
             //get connection with this group
-            System.out.println("MC Connecting");
+            //System.out.println("MC Connecting");
             Connect("229.1.2.3");
 
             //send hello message to all
-            System.out.println("MC Sending");
+            //System.out.println("MC Sending");
             SendMultiCastHello();
 
             //close socket, cause he is unused
-            System.out.println("MC losing");
+            //System.out.println("MC losing");
             CloseSocket();
         } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            System.out.println("All done");
+            return;
         }
     }
 
