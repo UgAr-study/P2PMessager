@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private String userName;
     private String userPassword;
     private String userPublicKye = null;
-    private String userIpAddress = "192.168.43.78";
+    private String userIpAddress = null;
     public SQLDataBase UsersTable;
     ArrayList<String> NamesInTable;
     public ArrayAdapter<String> userListAdapter;
@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     TCPReceiver tcpReceiver;
     MultiCastReceiver mcReceiver;
 
-    private String[] users = { "Artem", "Ignat"};
+    //private String[] users = { "Artem", "Ignat"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,14 +50,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /*Intent intent = getIntent();
+        Intent intent = getIntent();
         userName = intent.getStringExtra(LoginActivity.EXTRA_LOGIN);
         userPassword = intent.getStringExtra(LoginActivity.EXTRA_PASSWORD);
-        */
+
 
         ////////////////////////////////////
-        userName = "Artem";
-        userPassword = "aaaaaaaaaaaa";
+        //userName = "Artem";
+        //userPassword = "aaaaaaaaaaaa";
         ////////////////////////////////////
 
         UsersTable = new SQLDataBase(this);
@@ -166,6 +166,10 @@ public class MainActivity extends AppCompatActivity {
         textField.setText(text);
     }
 
+    public void onClickSendMCRequest (View v) {
+        new MultiCastSender("all", userName, userPublicKye).start();
+    }
+
     private class SendMessage extends AsyncTask<String, Void, Boolean> {
 
         private String ipAddress;
@@ -191,9 +195,9 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Boolean success) {
             //Код, выполняемый при завершении задач
             if (!success) {
-                Toast.makeText(MainActivity.this, "Cannot send message", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Cannot send message to " + ipAddress, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(MainActivity.this, "Message sent", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Message sent to " + ipAddress, Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -201,6 +205,11 @@ public class MainActivity extends AppCompatActivity {
 
 class TCPReceiverHandler extends Handler {
     WeakReference<MainActivity> wrActivity;
+
+    private final int ERROR = 1;
+    private final int SUCCESS = 0;
+    private final String KEY_DATA = "Data";
+    private final String KEY_ERROR = "ErrorMsg";
 
     public TCPReceiverHandler(MainActivity activity) {
         wrActivity = new WeakReference<>(activity);
@@ -210,20 +219,31 @@ class TCPReceiverHandler extends Handler {
     public void handleMessage(@NonNull Message msg) {
         MainActivity activity = wrActivity.get();
 
-        if (msg.what == 1) {
-            Toast.makeText(activity.getBaseContext(), "Server socket failed", Toast.LENGTH_SHORT).show();
+        if (activity == null)
             return;
-        }
 
-        if (activity != null) {
-            TextView textField = activity.findViewById(R.id.textField);
-            textField.setText(msg.getData().getString("Data"));
+        TextView textField;
+        switch (msg.what) {
+            case SUCCESS:
+                textField = activity.findViewById(R.id.textField);
+                textField.setText(msg.getData().getString(KEY_DATA));
+                break;
+
+            case ERROR:
+                textField = activity.findViewById(R.id.textField);
+                textField.setText(msg.getData().getString(KEY_ERROR));
+                break;
         }
     }
 }
 
 class MCReceiverHandler extends Handler {
     WeakReference<MainActivity> wrActivity;
+
+    private final int ERROR = 1;
+    private final int SUCCESS = 0;
+    private final String KEY_DATA = "Data";
+    private final String KEY_ERROR = "ErrorMsg";
 
     public MCReceiverHandler(MainActivity activity) {
         wrActivity = new WeakReference<>(activity);
@@ -233,22 +253,25 @@ class MCReceiverHandler extends Handler {
     public void handleMessage(@NonNull Message msg) {
         MainActivity activity = wrActivity.get();
 
+        if (activity == null)
+            return;
+
+        TextView textField;
+
         switch (msg.what) {
-            case 0:
+            case SUCCESS:
+                textField = activity.findViewById(R.id.textField);
+                textField.setText(msg.getData().getString(KEY_DATA));
+
                 activity.NamesInTable.clear();
                 ArrayList<String> newUsers = activity.UsersTable.getAllNames();
                 activity.NamesInTable.addAll(newUsers);
                 activity.userListAdapter.notifyDataSetChanged();
                 break;
 
-            case 1:
-                Toast.makeText(activity.getBaseContext(),
-                        "MultiCast socket failed", Toast.LENGTH_SHORT).show();
-                break;
-
-            case 2:
-                Toast.makeText(activity.getBaseContext(),
-                        "Getting packet failed", Toast.LENGTH_SHORT).show();
+            case ERROR:
+                textField = activity.findViewById(R.id.textField);
+                textField.setText(msg.getData().getString(KEY_ERROR));
                 break;
         }
     }

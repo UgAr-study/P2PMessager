@@ -187,18 +187,26 @@ public class SQLDataBase {
     	return getCells(SQLHelper.KEY_ENCRYPT_AES_KEY, SQLHelper.KEY_IP_ADDRESS, ip);
     }
 
-    public boolean updateAESKeyByPublicKey (String aesKey, String publicKey) {
-    	ContentValues val = new ContentValues ();
+    public int updateAESKeyByPublicKey (String aesKey, String publicKey) {
+        SQLiteDatabase db = helper.getReadableDatabase();
+        ContentValues val = new ContentValues ();
     	val.put (SQLHelper.KEY_ENCRYPT_AES_KEY, aesKey);
 
-    	return update(SQLHelper.DATABASE_NAME, val, SQLHelper.KEY_PUBLIC_KEY + " = ?", new String[] {SQLHelper.KEY_ID});
+    	String selection = SQLHelper.KEY_PUBLIC_KEY + " = ?";
+    	String[] selectionArgs = new String[] { publicKey };
+
+    	return db.update(SQLHelper.TABLE_NAME, val, selection, selectionArgs);
     }
 
-    public boolean updateIpByPublicKey (String ip, String publicKey) {
+    public int updateIpByPublicKey (String ip, String publicKey) {
+        SQLiteDatabase db = helper.getReadableDatabase();
     	ContentValues val = new ContentValues ();
     	val.put (SQLHelper.KEY_IP_ADDRESS, ip);
 
-    	return update(SQLHelper.DATABASE_NAME, val, SQLHelper.KEY_PUBLIC_KEY + " = ?", new String[] {SQLHelper.KEY_IP_ADDRESS});
+        String selection = SQLHelper.KEY_PUBLIC_KEY + " = ?";
+        String[] selectionArgs = new String[] { publicKey };
+
+    	return db.update(SQLHelper.TABLE_NAME, val, selection, selectionArgs);
     }
 
     public boolean deleteInfoBySign (String row, String rowArg) {

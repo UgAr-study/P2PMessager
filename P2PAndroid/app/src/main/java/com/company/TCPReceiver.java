@@ -21,6 +21,11 @@ public class TCPReceiver extends Thread {
     private final int port = 4000;
     private Handler mHandler;
 
+    private final int ERROR = 1;
+    private final int SUCCESS = 0;
+    private final String KEY_DATA = "Data";
+    private final String KEY_ERROR = "ErrorMsg";
+
     public TCPReceiver(Handler handler) {
         mHandler = handler;
     }
@@ -38,15 +43,24 @@ public class TCPReceiver extends Thread {
                 Message msg = mHandler.obtainMessage();
 
                 Bundle bundle = new Bundle();
-                bundle.putString("Data", text);
+                bundle.putString(KEY_DATA, text);
 
                 msg.setData(bundle);
+                msg.what = SUCCESS;
                 mHandler.sendMessage(msg);
 
                 socket.close();
             }
         }catch (Exception e) {
-            mHandler.sendEmptyMessage(1);
+            Message msg = mHandler.obtainMessage();
+
+            Bundle bundle = new Bundle();
+            bundle.putString(KEY_ERROR, e.getMessage());
+
+            msg.setData(bundle);
+            msg.what = ERROR;
+            mHandler.sendMessage(msg);
+
             return;
         } finally {
             try {

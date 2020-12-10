@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,9 +18,11 @@ import com.company.MultiCastReceiver;
 
 import java.math.BigInteger;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.security.interfaces.RSAKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Enumeration;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -37,19 +40,12 @@ public class LoginActivity extends AppCompatActivity {
         loginField    = findViewById(R.id.login);
         passwordField = findViewById(R.id.password);
 
-        /*TextView locIp = findViewById(R.id.localAddress);
-        String myIp = null;
-        try {
-            myIp = InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            Toast.makeText(this, "Cannot get my ip", Toast.LENGTH_SHORT).show();
-        }
+        //TextView locIp = findViewById(R.id.localAddress);
 
-        if (myIp != null)  {
-            locIp.setText(myIp);
-        } else {
-            locIp.setText("Oooops");
-        }*/
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        //locIp.setText(getLocalIp());
     }
 
     public void onClickSignUpButton (View v) {
@@ -74,4 +70,27 @@ public class LoginActivity extends AppCompatActivity {
 
         startActivity(intent);
     }
+
+    private String getLocalIp () {
+
+        String res = "";
+        try {
+            Enumeration networkInterfaces = NetworkInterface.getNetworkInterfaces();  // gets All networkInterfaces of your device
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface inet = (NetworkInterface) networkInterfaces.nextElement();
+                Enumeration address = inet.getInetAddresses();
+                while (address.hasMoreElements()) {
+                    InetAddress inetAddress = (InetAddress) address.nextElement();
+                    if (inetAddress.isSiteLocalAddress()) {
+                        res =  res.concat(inetAddress.getHostAddress() + "\n");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            res = e.getMessage();
+        }
+
+        return res;
+    }
+
 }

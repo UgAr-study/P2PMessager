@@ -37,16 +37,17 @@ public class MultiCastSender extends Thread{
             //System.out.println("MC losing");
             CloseSocket();
         } catch (Exception e) {
+            //TODO add handler and send the error message to it
             return;
         }
     }
 
-    public static void Connect (String host) throws SocketException, UnknownHostException{
+    private void Connect (String host) throws SocketException, UnknownHostException{
         socket = new DatagramSocket();
         inetAddress = InetAddress.getByName(host);
     }
 
-    public static void SendMultiCastHello () throws IOException {
+    private void SendMultiCastHello () throws IOException {
         String helloMessage = ToPublicKye + "\n" + FromName + "\n" + FromPublicKye;
         byte[] bytes = helloMessage.getBytes();
 
@@ -54,7 +55,7 @@ public class MultiCastSender extends Thread{
         socket.send(packet);
     }
 
-    public static void CloseSocket () throws Exception {
+    private void CloseSocket () throws Exception {
         socket.close();
     }
 
