@@ -1,6 +1,9 @@
 package com.example.p2pandroid;
 
 import android.content.Context;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.UnderlineSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,20 +12,16 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
+
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.MyViewHolder> {
 
-
-    String[] sendersNames;
-    String[] sendersMsg;
-    String[] timeStamps;
-
+    ArrayList<MessageItem> messageItems;
     Context context;
 
-    public RecyclerViewAdapter (Context ct, String[] names, String[] msgs, String[] times) {
+    public RecyclerViewAdapter (Context ct, ArrayList<MessageItem> items) {
         context = ct;
-        sendersMsg = msgs;
-        sendersNames = names;
-        timeStamps = times;
+        messageItems = items;
     }
 
     @NonNull
@@ -35,15 +34,25 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        holder.fromName.setText(sendersNames[position]);
-        holder.message.setText(sendersMsg[position]);
-        holder.timeStamp.setText(timeStamps[position]);
+
+        String name = messageItems.get(position).getName();
+        SpannableString ss=new SpannableString(name);
+        ss.setSpan(new UnderlineSpan(), 0, name.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        holder.fromName.setText(ss);
+        holder.message.setText(messageItems.get(position).getMessage());
+        holder.timeStamp.setText(messageItems.get(position).getTime());
 
     }
 
     @Override
     public int getItemCount() {
-        return sendersNames.length;
+        return messageItems.size();
+    }
+
+    public void addItem (MessageItem item) {
+        messageItems.add(item);
+        notifyItemChanged(getItemCount());
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
@@ -58,4 +67,29 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             message   = itemView.findViewById(R.id.messageText);
         }
     }
+}
+
+class MessageItem {
+    private String name;
+    private String time;
+    private String message;
+
+    public MessageItem(String na, String msg, String t) {
+        name = na;
+        message = msg;
+        time = t;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
 }

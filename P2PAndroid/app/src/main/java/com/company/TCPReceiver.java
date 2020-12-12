@@ -24,6 +24,7 @@ public class TCPReceiver extends Thread {
     private final int ERROR = 1;
     private final int SUCCESS = 0;
     private final String KEY_DATA = "Data";
+    private final String KEY_NAME = "Name";
     private final String KEY_ERROR = "ErrorMsg";
 
     public TCPReceiver(Handler handler) {
@@ -44,6 +45,7 @@ public class TCPReceiver extends Thread {
 
                 Bundle bundle = new Bundle();
                 bundle.putString(KEY_DATA, text);
+                bundle.putString(KEY_NAME, socket.getInetAddress().getHostAddress());
 
                 msg.setData(bundle);
                 msg.what = SUCCESS;

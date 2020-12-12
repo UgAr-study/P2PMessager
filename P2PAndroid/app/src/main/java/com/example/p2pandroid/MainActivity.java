@@ -10,9 +10,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.UnderlineSpan;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,16 +42,14 @@ public class MainActivity extends AppCompatActivity {
     private String userIpAddress = null;
     public SQLDataBase UsersTable;
     public ArrayList<String> NamesInTable;
+    public ArrayList<MessageItem> mMessages;
     public ArrayAdapter<String> userListAdapter;
+    public RecyclerViewAdapter recyclerViewAdapter;
     private Handler receiveMessagesHandler;
     private Handler receiveContactsHandler;
     private TCPReceiver tcpReceiver;
     private MultiCastReceiver mcReceiver;
 
-
-    String[] fromNamesTest = { "Artem", "Ignat" };
-    String[] textMsgTest   = { "Hello\n\n\n\n\n\n\n\n\n\n\n\n\n\naaaa", "Yep\n\n\n\n\n\n\n\n\n\n\n\n\n\nbbbbb"   };
-    String[] timesTest     = { "22:09", "17:43" };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,20 +61,26 @@ public class MainActivity extends AppCompatActivity {
         userName = intent.getStringExtra(LoginActivity.EXTRA_LOGIN);
         userPassword = intent.getStringExtra(LoginActivity.EXTRA_PASSWORD);
 
+        mMessages = new ArrayList<>();
+        mMessages.add(new MessageItem("Artem", "Hello", "22:09"));
+        mMessages.add(new MessageItem("Ignat", "I'm a gay", "17:53"));
+
 
         UsersTable = new SQLDataBase(this, "UsersContacts");
 
 
-        //receiveMessagesHandler = new TCPReceiverHandler(this);
-        //receiveContactsHandler = new MCReceiverHandler(this);
+        receiveMessagesHandler = new TCPReceiverHandler(this);
+        receiveContactsHandler = new MCReceiverHandler(this);
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        RecyclerViewAdapter recyclerViewAdapter = new RecyclerViewAdapter(this, fromNamesTest, textMsgTest, timesTest);
+        recyclerViewAdapter = new RecyclerViewAdapter(this, mMessages);
         recyclerView.setAdapter(recyclerViewAdapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager lm = new LinearLayoutManager(this);
+        lm.setStackFromEnd(true);
+        recyclerView.setLayoutManager(lm);
 
 
-        //ConnectToNetWork();
+        ConnectToNetWork();
 
         Spinner usersList = findViewById(R.id.userList);
 
@@ -129,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
 
         EditText editText = findViewById(R.id.message);
         String message = editText.getText().toString();
+        editText.setText(null);
         if (message.trim().isEmpty()) {
             Toast.makeText(MainActivity.this, "Empty message", Toast.LENGTH_SHORT).show();
             return;
@@ -137,11 +146,7 @@ public class MainActivity extends AppCompatActivity {
         new SendMessage().execute(message);
     }
 
-    /*public void onClickTestButton (View v) {
-
-        TextView textField = findViewById(R.id.textField);
-        textField.setText("TextView");
-        textField.setTextSize(24);
+    public void onClickTestButton (View v) {
 
         //UsersTable.deleteInfoByName("Artem");
         UsersTable.deleteInfoByName("Ignat");
@@ -170,8 +175,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        textField.setText(text);
-    }*/
+        mMessages.add(new MessageItem("Debug", text, "00:00"));
+        recyclerViewAdapter.notifyItemInserted(mMessages.size());
+    }
 
     public void onClickSendMCRequest (View v) {
         new MultiCastSender("all", userName, userPublicKye).start();
@@ -210,13 +216,14 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 
-/*
+
 class TCPReceiverHandler extends Handler {
     WeakReference<MainActivity> wrActivity;
 
     private final int ERROR = 1;
     private final int SUCCESS = 0;
     private final String KEY_DATA = "Data";
+    private final String KEY_NAME = "Name";
     private final String KEY_ERROR = "ErrorMsg";
 
     public TCPReceiverHandler(MainActivity activity) {
@@ -230,16 +237,25 @@ class TCPReceiverHandler extends Handler {
         if (activity == null)
             return;
 
-        TextView textField;
+        RecyclerView rv = activity.findViewById(R.id.recyclerView);
+
         switch (msg.what) {
             case SUCCESS:
-                textField = activity.findViewById(R.id.textField);
-                textField.setText(msg.getData().getString(KEY_DATA));
+                String name = msg.getData().getString(KEY_NAME);
+                String text = msg.getData().getString(KEY_DATA);
+                String time = "12:00";
+
+                activity.recyclerViewAdapter.addItem(new MessageItem(name, text, time));
+                rv.scrollToPosition(activity.recyclerViewAdapter.getItemCount() - 1);
+
                 break;
 
             case ERROR:
-                textField = activity.findViewById(R.id.textField);
-                textField.setText(msg.getData().getString(KEY_ERROR));
+                String errorMessage = msg.getData().getString(KEY_ERROR);
+
+                activity.recyclerViewAdapter.addItem(new MessageItem("Error", errorMessage, "11:11"));
+                rv.scrollToPosition(activity.recyclerViewAdapter.getItemCount() - 1);
+
                 break;
         }
     }
@@ -264,13 +280,20 @@ class MCReceiverHandler extends Handler {
         if (activity == null)
             return;
 
-        TextView textField;
+        RecyclerView rv = activity.findViewById(R.id.recyclerView);
 
         switch (msg.what) {
             case SUCCESS:
-                textField = activity.findViewById(R.id.textField);
-                textField.setText(msg.getData().getString(KEY_DATA));
 
+                String name = "Success";
+                String text = msg.getData().getString(KEY_DATA);
+                String time = "12:00";
+
+                activity.recyclerViewAdapter.addItem(new MessageItem(name, text, time));
+                rv.scrollToPosition(activity.recyclerViewAdapter.getItemCount() - 1);
+                /*activity.mMessages.add(new MessageItem(name, text, time));
+                activity.recyclerViewAdapter.notifyItemInserted(activity.mMessages.size());
+*/
                 activity.NamesInTable.clear();
                 ArrayList<String> newUsers = activity.UsersTable.getAllNames();
                 activity.NamesInTable.addAll(newUsers);
@@ -278,9 +301,11 @@ class MCReceiverHandler extends Handler {
                 break;
 
             case ERROR:
-                textField = activity.findViewById(R.id.textField);
-                textField.setText(msg.getData().getString(KEY_ERROR));
+                String errorMessage = msg.getData().getString(KEY_ERROR);
+
+                activity.recyclerViewAdapter.addItem(new MessageItem("Error", errorMessage, "11:11"));
+                rv.scrollToPosition(activity.recyclerViewAdapter.getItemCount() - 1);
                 break;
         }
     }
-}*/
+}
