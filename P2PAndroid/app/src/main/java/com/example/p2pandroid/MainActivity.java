@@ -2,6 +2,8 @@ package com.example.p2pandroid;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -35,14 +37,17 @@ public class MainActivity extends AppCompatActivity {
     private String userPublicKye = null;
     private String userIpAddress = null;
     public SQLDataBase UsersTable;
-    ArrayList<String> NamesInTable;
+    public ArrayList<String> NamesInTable;
     public ArrayAdapter<String> userListAdapter;
     private Handler receiveMessagesHandler;
     private Handler receiveContactsHandler;
-    TCPReceiver tcpReceiver;
-    MultiCastReceiver mcReceiver;
+    private TCPReceiver tcpReceiver;
+    private MultiCastReceiver mcReceiver;
 
-    //private String[] users = { "Artem", "Ignat"};
+
+    String[] fromNamesTest = { "Artem", "Ignat" };
+    String[] textMsgTest   = { "Hello\n\n\n\n\n\n\n\n\n\n\n\n\n\naaaa", "Yep\n\n\n\n\n\n\n\n\n\n\n\n\n\nbbbbb"   };
+    String[] timesTest     = { "22:09", "17:43" };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,17 +60,19 @@ public class MainActivity extends AppCompatActivity {
         userPassword = intent.getStringExtra(LoginActivity.EXTRA_PASSWORD);
 
 
-        ////////////////////////////////////
-        //userName = "Artem";
-        //userPassword = "aaaaaaaaaaaa";
-        ////////////////////////////////////
+        UsersTable = new SQLDataBase(this, "UsersContacts");
 
-        UsersTable = new SQLDataBase(this);
 
-        receiveMessagesHandler = new TCPReceiverHandler(this);
-        receiveContactsHandler = new MCReceiverHandler(this);
+        //receiveMessagesHandler = new TCPReceiverHandler(this);
+        //receiveContactsHandler = new MCReceiverHandler(this);
 
-        ConnectToNetWork();
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        RecyclerViewAdapter recyclerViewAdapter = new RecyclerViewAdapter(this, fromNamesTest, textMsgTest, timesTest);
+        recyclerView.setAdapter(recyclerViewAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+
+        //ConnectToNetWork();
 
         Spinner usersList = findViewById(R.id.userList);
 
@@ -130,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
         new SendMessage().execute(message);
     }
 
-    public void onClickTestButton (View v) {
+    /*public void onClickTestButton (View v) {
 
         TextView textField = findViewById(R.id.textField);
         textField.setText("TextView");
@@ -164,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         textField.setText(text);
-    }
+    }*/
 
     public void onClickSendMCRequest (View v) {
         new MultiCastSender("all", userName, userPublicKye).start();
@@ -203,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 
+/*
 class TCPReceiverHandler extends Handler {
     WeakReference<MainActivity> wrActivity;
 
@@ -275,4 +283,4 @@ class MCReceiverHandler extends Handler {
                 break;
         }
     }
-}
+}*/

@@ -14,8 +14,8 @@ import java.util.ArrayList;
 public class SQLDataBase {
     SQLHelper helper;
 
-    public SQLDataBase (Context context) {
-        helper = new SQLHelper(context);
+    public SQLDataBase (Context context, String tableName) {
+        helper = new SQLHelper(context, tableName);
     }
 
     public void WriteDB (String name, String ip, String publicKey, String encryptAESKey) {
@@ -241,16 +241,17 @@ class SQLHelper extends SQLiteOpenHelper {
 
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "USERS";
-    public static final String TABLE_NAME = "UsersContacts";
-
+    //public static final String TABLE_NAME = "UsersContacts";
+    public static String TABLE_NAME;
     public static final String KEY_ID = "_id";
     public static final String KEY_NAME = "name";
     public static final String KEY_IP_ADDRESS = "ipAddress";
     public static final String KEY_PUBLIC_KEY = "publicKey";
     public static final String KEY_ENCRYPT_AES_KEY = "encryptAESKey";
 
-    public SQLHelper(@Nullable Context context) {
+    public SQLHelper(@Nullable Context context, String tableName) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        TABLE_NAME = tableName;
     }
 
     @Override
