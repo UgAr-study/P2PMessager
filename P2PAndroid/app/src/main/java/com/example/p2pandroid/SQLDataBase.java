@@ -174,6 +174,15 @@ public class SQLDataBase {
         return getCells(SQLHelper.KEY_NAME, SQLHelper.KEY_PUBLIC_KEY, publicKey);
     }
 
+    public ArrayList<String> getNameByIpAddress (String ip) {
+        return getCells(SQLHelper.KEY_NAME, SQLHelper.KEY_IP_ADDRESS, ip);
+    }
+
+    public ArrayList<String> getPublicKeyByIpAddress (String ip) {
+        return getCells(SQLHelper.KEY_PUBLIC_KEY, SQLHelper.KEY_IP_ADDRESS, ip);
+    }
+
+
     public ArrayList<String> getAESKeyByPublicKey (String publicKey) {
     	return getCells(SQLHelper.KEY_ENCRYPT_AES_KEY, SQLHelper.KEY_PUBLIC_KEY, publicKey);
     }

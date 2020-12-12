@@ -31,7 +31,11 @@ import java.lang.ref.WeakReference;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -62,9 +66,6 @@ public class MainActivity extends AppCompatActivity {
         userPassword = intent.getStringExtra(LoginActivity.EXTRA_PASSWORD);
 
         mMessages = new ArrayList<>();
-        mMessages.add(new MessageItem("Artem", "Hello", "22:09"));
-        mMessages.add(new MessageItem("Ignat", "I'm a gay", "17:53"));
-
 
         UsersTable = new SQLDataBase(this, "UsersContacts");
 
@@ -241,9 +242,20 @@ class TCPReceiverHandler extends Handler {
 
         switch (msg.what) {
             case SUCCESS:
-                String name = msg.getData().getString(KEY_NAME);
+
+                String name;
+                String ip = msg.getData().getString(KEY_NAME);
+                ArrayList<String> names = activity.UsersTable.getNameByIpAddress(ip);
+                if (names.isEmpty()) {
+                    name = ip;
+                } else
+                    name = names.get(0);
+
                 String text = msg.getData().getString(KEY_DATA);
-                String time = "12:00";
+
+                Date currentDate = new Date();
+                DateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                String time = timeFormat.format(currentDate);
 
                 activity.recyclerViewAdapter.addItem(new MessageItem(name, text, time));
                 rv.scrollToPosition(activity.recyclerViewAdapter.getItemCount() - 1);
@@ -253,7 +265,7 @@ class TCPReceiverHandler extends Handler {
             case ERROR:
                 String errorMessage = msg.getData().getString(KEY_ERROR);
 
-                activity.recyclerViewAdapter.addItem(new MessageItem("Error", errorMessage, "11:11"));
+                activity.recyclerViewAdapter.addItem(new MessageItem("Error", errorMessage, "-00:00"));
                 rv.scrollToPosition(activity.recyclerViewAdapter.getItemCount() - 1);
 
                 break;
@@ -287,7 +299,11 @@ class MCReceiverHandler extends Handler {
 
                 String name = "Success";
                 String text = msg.getData().getString(KEY_DATA);
-                String time = "12:00";
+
+                Date currentDate = new Date();
+                DateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                String time = timeFormat.format(currentDate);
+                //String time = "12:00";
 
                 activity.recyclerViewAdapter.addItem(new MessageItem(name, text, time));
                 rv.scrollToPosition(activity.recyclerViewAdapter.getItemCount() - 1);
