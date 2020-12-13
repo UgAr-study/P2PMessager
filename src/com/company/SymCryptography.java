@@ -1,5 +1,7 @@
 package com.company;
 
+import com.google.gson.Gson;
+
 import javax.crypto.*;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -10,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.Base64;
 
 class SymCryptography {
     private SecretKey secretKey = null;
@@ -58,11 +61,24 @@ class SymCryptography {
         return new SealedObject(msg, cipher);
     }
 
+    static public String encryptByPwdGson(String msg, String pwd) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IOException, IllegalBlockSizeException, InvalidKeySpecException {
+        SealedObject encryptMsg = SymCryptography.encryptByPwd(msg, pwd);
+        Gson gs = new Gson();
+        String data = gs.toJson(encryptMsg);
+        return data;
+    }
+
     static public String decryptByPwd(SealedObject data, String pwd) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, ClassNotFoundException, InvalidKeySpecException {
         SecretKey key = generateAESKeyByPwd(pwd);
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, key);
         return (String) data.getObject(cipher);
+    }
+
+    static public String decryptByPwdGson(String data, String pwd) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, ClassNotFoundException, InvalidKeySpecException {
+        Gson gs = new Gson();
+        SealedObject sobj = gs.fromJson(data, SealedObject.class);
+        return SymCryptography.decryptByPwd(sobj, pwd);
     }
 
     private static SecretKey generateAESKeyByPwd(String pwd) throws NoSuchAlgorithmException, InvalidKeySpecException {
