@@ -3,26 +3,19 @@ package com.example.p2pandroid;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import com.company.AsymCryptography;
-import com.company.MultiCastSender;
-import com.company.TCPReceiver;
-import com.company.MultiCastReceiver;
-
-import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.UnknownHostException;
-import java.security.interfaces.RSAKey;
-import java.security.interfaces.RSAPublicKey;
 import java.util.Enumeration;
+
+import javax.crypto.SealedObject;
+
+import com.company.SymCryptography;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -30,6 +23,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText passwordField;
     public static final String EXTRA_PASSWORD = "password";
     public static final String EXTRA_LOGIN = "login";
+    SharedPreferences userInfo;
 
 
     @Override
@@ -45,11 +39,12 @@ public class LoginActivity extends AppCompatActivity {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
+        userInfo = getSharedPreferences("UserInfo", MODE_PRIVATE);
+
         //locIp.setText(getLocalIp());
     }
 
     public void onClickSignUpButton (View v) {
-
         if (loginField.getText().toString().trim().isEmpty()) {
             Toast.makeText(getApplicationContext(), "Error: login is empty", Toast.LENGTH_SHORT).show();
             return;
@@ -68,7 +63,36 @@ public class LoginActivity extends AppCompatActivity {
         intent.putExtra(EXTRA_PASSWORD, password);
         intent.putExtra(EXTRA_LOGIN, name);
 
-        startActivity(intent);
+        if (userInfo.getAll().isEmpty()) {
+            SharedPreferences.Editor userInfoEditor = userInfo.edit();
+            try {
+                String encryptPwd = SymCryptography.encryptByPwdGson(password, password);
+                userInfoEditor.putString(name, encryptPwd);
+                userInfoEditor.apply();
+            } catch (Exception e) {
+                Toast.makeText(this, "Sym Crypto ERROR\n", Toast.LENGTH_LONG).show();
+                return;
+            }
+            startActivity(intent);
+        } else {
+            if (!userInfo.contains(name)) {
+                Toast.makeText(this, "Invalid login", Toast.LENGTH_SHORT).show();
+                return;
+            } else {
+                try {
+                    String encryptPwd = userInfo.getString(name, null);
+                    if (SymCryptography.decryptByPwdGson(encryptPwd, password).equals(password)) {
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(this, "Invalid password", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(this, "Invalid password", Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+        }
     }
 
     private String getLocalIp () {
