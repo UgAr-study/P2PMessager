@@ -1,6 +1,6 @@
 package com.company;
 
-import com.google.gson.Gson;
+//import com.google.gson.Gson;
 
 import javax.crypto.SecretKey;
 import javax.crypto.KeyGenerator;
@@ -23,6 +23,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 
 
 public class SymCryptography {
@@ -42,6 +43,32 @@ public class SymCryptography {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
         return new SealedObject(msg, cipher);
+    }
+
+    static public SealedObject encryptMsg(String msg, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        return new SealedObject(msg, cipher);
+    }
+
+    static public String decryptMsg(SealedObject data, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, IOException, ClassNotFoundException {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, key);
+        return data.getObject(cipher).toString();
+    }
+
+    static public SecretKey getSecretKeyByString(String secKey) {
+        byte[] decodedKey = Base64.getDecoder().decode(secKey);
+        SecretKey originalKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+        return originalKey;
+    }
+
+    static public String generateStringSecretKey() throws NoSuchAlgorithmException {
+        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+        keyGenerator.init(256);
+        SecretKey secretKey = keyGenerator.generateKey();
+        String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
+        return encodedKey;
     }
 
     public String decryptMsg(SealedObject data) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, IOException, ClassNotFoundException {
