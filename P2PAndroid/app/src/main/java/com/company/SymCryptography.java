@@ -1,14 +1,27 @@
 package com.company;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
-import javax.crypto.*;
-import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.SecretKey;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SealedObject;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.Mac;
+import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.*;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectInput;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.spec.InvalidKeySpecException;
 
 
@@ -34,7 +47,7 @@ public class SymCryptography {
     public String decryptMsg(SealedObject data) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, IOException, ClassNotFoundException {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, secretKey);
-        return (String) data.getObject(cipher);
+        return data.getObject(cipher).toString();
     }
 
     public byte[] getMacMsg(String msg) throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException {
