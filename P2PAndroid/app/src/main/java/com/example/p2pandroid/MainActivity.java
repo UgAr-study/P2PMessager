@@ -187,11 +187,13 @@ public class MainActivity extends AppCompatActivity {
     private class SendMessage extends AsyncTask<String, Void, Boolean> {
 
         private String ipAddress;
+        MainActivity activity;
 
         @Override
         protected void onPreExecute() {
             Spinner spinner = findViewById(R.id.userList);
 
+            activity = MainActivity.this;
             int position = spinner.getSelectedItemPosition();
 
             ArrayList<String> ipAddresses = UsersTable.getAllIpAddresses();

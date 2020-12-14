@@ -1,17 +1,11 @@
 package com.company;
 
 import javax.crypto.*;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 
-import java.lang.reflect.GenericDeclaration;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -21,38 +15,51 @@ public class AsymCryptography {
     private static String path = "res/AsymKeyStore";
     private PrivateKey privateKey = null;
 
-    static public PublicKey generateNewPair(String pwd) throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, IllegalBlockSizeException, InvalidKeyException, InvalidKeySpecException, NoSuchPaddingException {
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(1024);
-        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+    static public PublicKey generateNewPair(String pwd) {
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(1024);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-        File keyStore = new File(path);
-        if (!keyStore.exists()) {
-            keyStore.createNewFile();
+            File keyStore = new File(path);
+            if (!keyStore.exists()) {
+                keyStore.createNewFile();
+            }
+            FileOutputStream fileOutputStream = new FileOutputStream(keyStore);
+            SealedObject encryptKey = SymCryptography.encryptByPwd(keyPair.getPrivate().toString(), pwd);
+            ObjectOutputStream outputStream = new ObjectOutputStream(fileOutputStream);
+
+            outputStream.writeObject(encryptKey);
+
+            keyStore.setReadOnly();
+
+            return keyPair.getPublic();
+        } catch (Exception e) {
+            return null;
         }
-        FileOutputStream fileOutputStream = new FileOutputStream(keyStore);
-        SealedObject encryptKey = SymCryptography.encryptByPwd(keyPair.getPrivate().toString(), pwd);
-        ObjectOutputStream outputStream = new ObjectOutputStream(fileOutputStream);
-
-        outputStream.writeObject(encryptKey);
-
-        keyStore.setReadOnly();
-
-        return keyPair.getPublic();
     }
 
-    public PrivateKey getPrivateKeyFromString(String keyStr) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        byte[] data = Base64.getDecoder().decode((keyStr.getBytes()));
-        X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
-        KeyFactory fact = KeyFactory.getInstance("RSA");
-        return fact.generatePrivate(spec);
+    public PrivateKey getPrivateKeyFromString(String keyStr) {
+        try {
+            byte[] data = Base64.getDecoder().decode((keyStr.getBytes()));
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
+            KeyFactory fact = KeyFactory.getInstance("RSA");
+            return fact.generatePrivate(spec);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            return null;
+        }
     }
 
-    public PublicKey getPublicKeyFromString(String keyStr) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        byte[] data = Base64.getDecoder().decode((keyStr.getBytes(StandardCharsets.UTF_8)));
-        X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
-        KeyFactory fact = KeyFactory.getInstance("RSA");
-        return fact.generatePublic(spec);
+    public PublicKey getPublicKeyFromString(String keyStr) {
+
+        try {
+            byte[] data = Base64.getDecoder().decode((keyStr.getBytes(StandardCharsets.UTF_8)));
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
+            KeyFactory fact = KeyFactory.getInstance("RSA");
+            return fact.generatePublic(spec);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            return null;
+        }
     }
 
     private BigInteger readModulusFromString(String keyData) {
@@ -86,27 +93,26 @@ public class AsymCryptography {
         privateKey = factory.generatePrivate(privateSpec);
     }
 
-    public SealedObject encryptMsg(String msg, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, IOException {
-        Cipher encrypt=Cipher.getInstance("RSA");
+    public SealedObject encryptMsg(String msg, PublicKey publicKey) {
         try {
+            Cipher encrypt=Cipher.getInstance("RSA");
             encrypt.init(Cipher.ENCRYPT_MODE, publicKey);
+            return new SealedObject( msg, encrypt);
         }
-        catch (InvalidKeyException e) {
-            e.getMessage();
-            System.err.println("an attempt was made to encrypt empty text and the private key was not loaded");
+        catch (NoSuchPaddingException | NoSuchAlgorithmException | IllegalBlockSizeException | IOException | InvalidKeyException e) {
+            return null;
         }
-        return new SealedObject( msg, encrypt);
     }
 
-    public String decryptMsg(SealedObject encryptMsg) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException, IllegalBlockSizeException, IOException, ClassNotFoundException {
-        Cipher decrypt = Cipher.getInstance("RSA");
+    public String decryptMsg(SealedObject encryptMsg) {
         try {
+            Cipher decrypt = Cipher.getInstance("RSA");
             decrypt.init(Cipher.DECRYPT_MODE, privateKey);
+            return (String) encryptMsg.getObject(decrypt);
         }
-        catch (InvalidKeyException e) {
-            e.getMessage();
-            System.err.println("an attempt was made to encrypt empty text and the private key was not loaded");
+
+        catch (Exception e) {
+            return null;
         }
-        return (String) encryptMsg.getObject(decrypt);
     }
 }
