@@ -2,6 +2,8 @@ package com.company;
 
 //import com.google.gson.Gson;
 
+import com.google.gson.Gson;
+
 import javax.crypto.SecretKey;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SealedObject;
@@ -45,10 +47,14 @@ public class SymCryptography {
         return new SealedObject(msg, cipher);
     }
 
-    static public SealedObject encryptMsg(String msg, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
-        Cipher cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.ENCRYPT_MODE, key);
-        return new SealedObject(msg, cipher);
+    static public SealedObject encryptMsg(String msg, SecretKey key) {
+        try {
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+            return new SealedObject(msg, cipher);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     static public String decryptMsg(SealedObject data, SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, IOException, ClassNotFoundException {
@@ -63,12 +69,16 @@ public class SymCryptography {
         return originalKey;
     }
 
-    static public String generateStringSecretKey() throws NoSuchAlgorithmException {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-        keyGenerator.init(256);
-        SecretKey secretKey = keyGenerator.generateKey();
-        String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
-        return encodedKey;
+    static public String generateStringSecretKey() {
+        try {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+            keyGenerator.init(256);
+            SecretKey secretKey = keyGenerator.generateKey();
+            String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
+            return encodedKey;
+        } catch (NoSuchAlgorithmException e) {
+            return null;
+        }
     }
 
     public String decryptMsg(SealedObject data) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, IOException, ClassNotFoundException {

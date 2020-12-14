@@ -39,7 +39,7 @@ public class AsymCryptography {
         }
     }
 
-    public PrivateKey getPrivateKeyFromString(String keyStr) {
+    static public PrivateKey getPrivateKeyFromString(String keyStr) {
         try {
             byte[] data = Base64.getDecoder().decode((keyStr.getBytes()));
             X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
@@ -50,7 +50,7 @@ public class AsymCryptography {
         }
     }
 
-    public PublicKey getPublicKeyFromString(String keyStr) {
+    static public PublicKey getPublicKeyFromString(String keyStr) {
 
         try {
             byte[] data = Base64.getDecoder().decode((keyStr.getBytes(StandardCharsets.UTF_8)));
@@ -93,7 +93,7 @@ public class AsymCryptography {
         privateKey = factory.generatePrivate(privateSpec);
     }
 
-    public SealedObject encryptMsg(String msg, PublicKey publicKey) {
+    static public SealedObject encryptMsg(String msg, PublicKey publicKey) {
         try {
             Cipher encrypt=Cipher.getInstance("RSA");
             encrypt.init(Cipher.ENCRYPT_MODE, publicKey);

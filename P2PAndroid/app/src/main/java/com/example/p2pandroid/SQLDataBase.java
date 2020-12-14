@@ -192,7 +192,7 @@ public class SQLDataBase {
     }
 
 
-    public ArrayList<String> getAESKeyByIp (String ip) {
+    public ArrayList<String> getAESKeyByIpAddress (String ip) {
     	return getCells(SQLHelper.KEY_ENCRYPT_AES_KEY, SQLHelper.KEY_IP_ADDRESS, ip);
     }
 

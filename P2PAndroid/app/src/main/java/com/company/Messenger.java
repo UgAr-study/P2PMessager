@@ -1,18 +1,11 @@
 package com.company;
 
-import javax.crypto.Cipher;
-import javax.crypto.CipherOutputStream;
 import javax.crypto.SealedObject;
-import javax.crypto.SecretKey;
-import javax.xml.transform.Templates;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.security.Key;
-import java.security.PublicKey;
 
 public abstract class Messenger {
 
@@ -58,4 +51,3 @@ public abstract class Messenger {
         }
     }
 }
-

@@ -15,20 +15,24 @@ import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.company.AsymCryptography;
 import com.company.Messenger;
 import com.company.MultiCastSender;
+import com.company.SymCryptography;
 import com.company.TCPReceiver;
 import com.company.MultiCastReceiver;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.security.KeyStoreException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.text.DateFormat;
@@ -36,6 +40,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+
+import javax.crypto.SealedObject;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -191,6 +197,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPreExecute() {
+            Button bt = findViewById(R.id.send_button);
+            bt.setClickable(false);
             Spinner spinner = findViewById(R.id.userList);
 
             activity = MainActivity.this;
@@ -202,7 +210,39 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(String... msgs) {
-            return Messenger.SendMessageToIp(msgs[0], ipAddress);
+
+            ArrayList<String> aesKeys = activity.UsersTable.getAESKeyByIpAddress(ipAddress);
+
+            if (aesKeys.isEmpty()) {
+                ArrayList<String> pubKeys = activity.UsersTable.getPublicKeyByIpAddress(ipAddress);
+
+                if (pubKeys.isEmpty()) {
+                    // Error
+                    return false;
+                } else {
+                    String pubKey = pubKeys.get(0);
+                    String symKey = SymCryptography.generateStringSecretKey();
+                    activity.UsersTable.updateAESKeyByPublicKey(symKey, pubKey);
+
+                    if (symKey == null) {
+                        //Error
+                        return false;
+                    }
+
+                    SealedObject so = AsymCryptography.encryptMsg(symKey, AsymCryptography.getPublicKeyFromString(pubKey));
+                    return Messenger.SendEncryptMessageToIp(so, ipAddress);
+                }
+            } else {
+                String aesKey = aesKeys.get(0);
+                SealedObject so = SymCryptography.encryptMsg(msgs[0], SymCryptography.getSecretKeyByString(aesKey));
+
+                if (so == null) {
+                    //Error
+                    return false;
+                }
+
+                return Messenger.SendEncryptMessageToIp(so, ipAddress);
+            }
         }
 
         protected void onProgressUpdate() {
@@ -210,6 +250,8 @@ public class MainActivity extends AppCompatActivity {
         }
         protected void onPostExecute(Boolean success) {
             //Код, выполняемый при завершении задач
+            Button bt = findViewById(R.id.send_button);
+            bt.setClickable(true);
             if (!success) {
                 Toast.makeText(MainActivity.this, "Cannot send message to " + ipAddress, Toast.LENGTH_SHORT).show();
             } else {
