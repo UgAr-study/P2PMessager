@@ -37,7 +37,7 @@ public class AsymCryptography {
     static public PublicKey generateNewPair(String pwd) {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(1024);
+            keyPairGenerator.initialize(4096);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
             File keyStore = new File(path);
