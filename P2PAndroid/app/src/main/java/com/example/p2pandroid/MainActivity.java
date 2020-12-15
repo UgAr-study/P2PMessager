@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
         UsersTable.WriteDB(userName, userIpAddress, userPublicKye);
 
         mcReceiver = new MultiCastReceiver(UsersTable, receiveContactsHandler);
-        tcpReceiver = new TCPReceiver(receiveMessagesHandler);
+        tcpReceiver = new TCPReceiver(receiveMessagesHandler, UsersTable, userPassword);
 
         mcReceiver.start();
         tcpReceiver.start();
@@ -230,8 +230,30 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     SealedObject so = AsymCryptography.encryptMsg(symKey, AsymCryptography.getPublicKeyFromString(pubKey));
-                    return Messenger.SendEncryptMessageToIp(so, ipAddress);
+
+                    Messenger sender = new Messenger();
+                    if (!sender.SendEncryptMessageToIp(so, ipAddress)) {
+                        //Error
+                        sender.Close();
+                        return false;
+                    } else {
+                        so = SymCryptography.encryptMsg(msgs[0], SymCryptography.getSecretKeyByString(symKey));
+
+                        if (so == null) {
+                            //Error
+                            return false;
+                        } else {
+
+                            boolean isSend = false;
+                            if (sender.SendEncryptMessageToIp(so, ipAddress))
+                                isSend = true;
+
+                            sender.Close();
+                            return isSend;
+                        }
+                    }
                 }
+
             } else {
                 String aesKey = aesKeys.get(0);
                 SealedObject so = SymCryptography.encryptMsg(msgs[0], SymCryptography.getSecretKeyByString(aesKey));
@@ -241,7 +263,14 @@ public class MainActivity extends AppCompatActivity {
                     return false;
                 }
 
-                return Messenger.SendEncryptMessageToIp(so, ipAddress);
+                Messenger sender = new Messenger();
+
+                boolean isSend = false;
+                if (sender.SendEncryptMessageToIp(so, ipAddress))
+                    isSend = true;
+
+                sender.Close();
+                return isSend;
             }
         }
 

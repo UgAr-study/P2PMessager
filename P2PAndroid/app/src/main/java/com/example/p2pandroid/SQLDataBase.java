@@ -207,6 +207,17 @@ public class SQLDataBase {
     	return db.update(SQLHelper.TABLE_NAME, val, selection, selectionArgs);
     }
 
+    public int updateAESKeyByIpAddress (String aesKey, String ip) {
+        SQLiteDatabase db = helper.getReadableDatabase();
+        ContentValues val = new ContentValues ();
+        val.put (SQLHelper.KEY_ENCRYPT_AES_KEY, aesKey);
+
+        String selection = SQLHelper.KEY_IP_ADDRESS + " = ?";
+        String[] selectionArgs = new String[] { ip };
+
+        return db.update(SQLHelper.TABLE_NAME, val, selection, selectionArgs);
+    }
+
     public int updateIpByPublicKey (String ip, String publicKey) {
         SQLiteDatabase db = helper.getReadableDatabase();
     	ContentValues val = new ContentValues ();

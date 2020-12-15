@@ -7,15 +7,17 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public abstract class Messenger {
+public class Messenger {
 
-    private static final int serverPort = 4000;
+    private final int serverPort = 4000;
+    private Socket socket;
+    private ObjectOutputStream out;
 
-    public static boolean SendMessageToIp (String message, String ipAddress) {
+    public boolean SendMessageToIp (String message, String ipAddress) {
         try {
             InetAddress ipAddr = InetAddress.getByName(ipAddress);
 
-            Socket socket = new Socket();
+            socket = new Socket();
             socket.connect(new InetSocketAddress(ipAddr, serverPort), 1000);
 
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
@@ -24,7 +26,6 @@ public abstract class Messenger {
             out.flush();
             out.close();
 
-            socket.close();
             return true;
 
         } catch (UnknownHostException e) {
@@ -34,20 +35,27 @@ public abstract class Messenger {
         }
     }
 
-    public static boolean SendEncryptMessageToIp (SealedObject encryptMsg, String ipAddress) {
+    public boolean SendEncryptMessageToIp (SealedObject encryptMsg, String ipAddress) {
         try {
             InetAddress ipAddr = InetAddress.getByName(ipAddress);
-            Socket socket = new Socket();
+            socket = new Socket();
             socket.connect(new InetSocketAddress(ipAddr, serverPort), 1000);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            out = new ObjectOutputStream(socket.getOutputStream());
 
             out.writeObject(encryptMsg);
             out.flush();
-            out.close();
-            socket.close();
             return true;
         } catch (IOException e) {
             return false;
+        }
+    }
+
+    public void Close() {
+        try {
+            out.close();
+            socket.close();
+        } catch (IOException e) {
+            //do nothing
         }
     }
 }
