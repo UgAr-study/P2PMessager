@@ -68,8 +68,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Intent intent = getIntent();
-        userName = intent.getStringExtra(LoginActivity.EXTRA_LOGIN);
+
         userPassword = intent.getStringExtra(LoginActivity.EXTRA_PASSWORD);
+
+        if (intent.hasExtra(LoginActivity.EXTRA_LOGIN)) {
+            userName      = intent.getStringExtra(LoginActivity.EXTRA_LOGIN);
+            userPublicKye = intent.getStringExtra(LoginActivity.EXTRA_PABLIC_KEY);
+        } else {
+            userName      = UsersTable.getNameById(String.valueOf(1)).get(0);
+            userPublicKye = UsersTable.getPublicKeyById(String.valueOf(1)).get(0);
+        }
 
         mMessages = new ArrayList<>();
 
@@ -109,19 +117,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void ConnectToNetWork () {
-
-//        int i = 0;
-//        while (i < 2) {
-//            try {
-//                userPublicKye = AsymCryptography.getStringAsymKey(AsymCryptography.generateNewPair(userPassword));
-//                break;
-//            } catch (Exception e) {
-//                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-//                ++i;
-//            }
-//        }
-
-        userPublicKye = userPassword;
 
         if (userPublicKye == null) {
             Toast.makeText(this, "Can't generate public key", Toast.LENGTH_SHORT).show();
@@ -215,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
 
             boolean isAESKeyInTable = false;
             for (int i = 0; i < aesKeys.size(); ++i)
-                if (!aesKeys.get(i).isEmpty())
+                if (aesKeys.get(i) != null)
                     isAESKeyInTable = true;
 
             if (!isAESKeyInTable) {

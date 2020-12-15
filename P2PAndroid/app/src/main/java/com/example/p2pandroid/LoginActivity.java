@@ -15,6 +15,7 @@ import java.util.Enumeration;
 
 import javax.crypto.SealedObject;
 
+import com.company.AsymCryptography;
 import com.company.SymCryptography;
 
 public class LoginActivity extends AppCompatActivity {
@@ -23,6 +24,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText passwordField;
     public static final String EXTRA_PASSWORD = "password";
     public static final String EXTRA_LOGIN = "login";
+    public static final String EXTRA_PABLIC_KEY = "public_key";
     SharedPreferences userInfo;
 
 
@@ -59,9 +61,7 @@ public class LoginActivity extends AppCompatActivity {
         String password = passwordField.getText().toString();
 
         Intent intent = new Intent(this, MainActivity.class);
-
         intent.putExtra(EXTRA_PASSWORD, password);
-        intent.putExtra(EXTRA_LOGIN, name);
 
         if (userInfo.getAll().isEmpty()) {
             SharedPreferences.Editor userInfoEditor = userInfo.edit();
@@ -73,7 +73,14 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(this, "Sym Crypto ERROR\n", Toast.LENGTH_LONG).show();
                 return;
             }
+
+            String userPublicKye = AsymCryptography.getStringAsymKey(AsymCryptography.generateNewPair(password));
+
+            intent.putExtra(EXTRA_LOGIN, name);
+            intent.putExtra(EXTRA_PABLIC_KEY, userPublicKye);
+
             startActivity(intent);
+            
         } else {
             if (!userInfo.contains(name)) {
                 Toast.makeText(this, "Invalid login", Toast.LENGTH_SHORT).show();
