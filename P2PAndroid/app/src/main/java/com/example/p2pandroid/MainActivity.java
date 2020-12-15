@@ -213,7 +213,12 @@ public class MainActivity extends AppCompatActivity {
 
             ArrayList<String> aesKeys = activity.UsersTable.getAESKeyByIpAddress(ipAddress);
 
-            if (aesKeys.isEmpty()) {
+            boolean isAESKeyInTable = false;
+            for (int i = 0; i < aesKeys.size(); ++i)
+                if (!aesKeys.get(i).isEmpty())
+                    isAESKeyInTable = true;
+
+            if (!isAESKeyInTable) {
                 ArrayList<String> pubKeys = activity.UsersTable.getPublicKeyByIpAddress(ipAddress);
 
                 if (pubKeys.isEmpty()) {
@@ -222,12 +227,13 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     String pubKey = pubKeys.get(0);
                     String symKey = SymCryptography.generateStringSecretKey();
-                    activity.UsersTable.updateAESKeyByPublicKey(symKey, pubKey);
 
                     if (symKey == null) {
                         //Error
                         return false;
                     }
+
+                    activity.UsersTable.updateAESKeyByPublicKey(symKey, pubKey);
 
                     SealedObject so = AsymCryptography.encryptMsg(symKey, AsymCryptography.getPublicKeyFromString(pubKey));
 
