@@ -1,5 +1,6 @@
 package com.company;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,9 +16,16 @@ import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SealedObject;
 
 public class TCPReceiver extends Thread {
@@ -28,6 +36,7 @@ public class TCPReceiver extends Thread {
     private Handler mHandler;
     private SQLDataBase UserTable;
     private String userPassword;
+    private SharedPreferences keyStore;
 
     private final int ERROR = 1;
     private final int SUCCESS = 0;
@@ -35,10 +44,11 @@ public class TCPReceiver extends Thread {
     private final String KEY_NAME = "Name";
     private final String KEY_ERROR = "ErrorMsg";
 
-    public TCPReceiver(Handler handler, SQLDataBase db, String pwd) {
+    public TCPReceiver(Handler handler, SQLDataBase db, String pwd, SharedPreferences kStore) {
         mHandler = handler;
         UserTable = db;
         userPassword = pwd;
+        keyStore = kStore;
     }
 
     @Override
@@ -58,8 +68,7 @@ public class TCPReceiver extends Thread {
                 ArrayList<String> aesKeys = UserTable.getAESKeyByIpAddress(ipAddress);
 
                 if (aesKeys.isEmpty()) {
-                    AsymCryptography S = new AsymCryptography();
-                    S.loadPrivateKey(userPassword);
+                    AsymCryptography S = loadPrivateKey(userPassword);
                     String symKey = S.decryptMsg(sobj);
 
                     UserTable.updateAESKeyByIpAddress(symKey, ipAddress);
@@ -105,5 +114,15 @@ public class TCPReceiver extends Thread {
                 Log.d("myLog", Objects.requireNonNull(e.getMessage()));
             }
         }
+    }
+
+    private AsymCryptography loadPrivateKey(String pwd) {
+        AsymCryptography as = new AsymCryptography();
+        try {
+            as.loadPrivateKey(pwd, keyStore);
+        } catch (IllegalBlockSizeException | BadPaddingException | NoSuchAlgorithmException | IOException | ClassNotFoundException | NoSuchPaddingException | InvalidKeyException | InvalidKeySpecException e){
+            return null;
+        }
+        return as;
     }
 }

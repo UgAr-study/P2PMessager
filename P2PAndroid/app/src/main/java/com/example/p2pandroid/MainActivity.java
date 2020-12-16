@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -64,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        UsersTable = new SQLDataBase(MainActivity.this, "UsersContacts");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -80,9 +83,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         mMessages = new ArrayList<>();
-
-        UsersTable = new SQLDataBase(this, "UsersContacts");
-
 
         receiveMessagesHandler = new TCPReceiverHandler(this);
         receiveContactsHandler = new MCReceiverHandler(this);
@@ -125,8 +125,10 @@ public class MainActivity extends AppCompatActivity {
 
         UsersTable.WriteDB(userName, userIpAddress, userPublicKye);
 
+        SharedPreferences kesStore = getSharedPreferences(AsymCryptography.KEY_STORE_NAME, MODE_PRIVATE);
+
         mcReceiver = new MultiCastReceiver(UsersTable, receiveContactsHandler);
-        tcpReceiver = new TCPReceiver(receiveMessagesHandler, UsersTable, userPassword);
+        tcpReceiver = new TCPReceiver(receiveMessagesHandler, UsersTable, userPassword, kesStore);
 
         mcReceiver.start();
         tcpReceiver.start();

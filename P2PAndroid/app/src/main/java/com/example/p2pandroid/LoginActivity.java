@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.security.PublicKey;
 import java.util.Enumeration;
 
 import javax.crypto.SealedObject;
@@ -26,6 +27,7 @@ public class LoginActivity extends AppCompatActivity {
     public static final String EXTRA_LOGIN = "login";
     public static final String EXTRA_PABLIC_KEY = "public_key";
     SharedPreferences userInfo;
+    SharedPreferences kesStore;
 
 
     @Override
@@ -74,7 +76,7 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            String userPublicKye = AsymCryptography.getStringAsymKey(AsymCryptography.generateNewPair(password));
+            String userPublicKye = AsymCryptography.getStringAsymKey(generateNewPairAsymKey(password));
 
             intent.putExtra(EXTRA_LOGIN, name);
             intent.putExtra(EXTRA_PABLIC_KEY, userPublicKye);
@@ -122,6 +124,11 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         return res;
+    }
+
+    private PublicKey generateNewPairAsymKey(String pwd) {
+        kesStore = getSharedPreferences(AsymCryptography.KEY_STORE_NAME, MODE_PRIVATE);
+        return AsymCryptography.generateNewPair(pwd, kesStore);
     }
 
 }

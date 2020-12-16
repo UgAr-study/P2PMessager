@@ -1,5 +1,7 @@
 package com.company;
 
+import android.content.SharedPreferences;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -31,27 +33,20 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 public class AsymCryptography {
-    private static String path = "res/AsymKeyStore";
+    public final static String KEY_STORE_NAME = "keyStrore";
+    private final static String PRIVATE_KEY = "Private_Key";
     private PrivateKey privateKey = null;
 
-    static public PublicKey generateNewPair(String pwd) {
+    static public PublicKey generateNewPair(String pwd, SharedPreferences keyStore) {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(4096);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-            File keyStore = new File(path);
-            if (!keyStore.exists()) {
-                keyStore.createNewFile();
-            }
-            FileOutputStream fileOutputStream = new FileOutputStream(keyStore);
-            SealedObject encryptKey = SymCryptography.encryptByPwd(keyPair.getPrivate().toString(), pwd);
-            ObjectOutputStream outputStream = new ObjectOutputStream(fileOutputStream);
-
-            outputStream.writeObject(encryptKey);
-
-            keyStore.setReadOnly();
-
+            String encryptKeyString = SymCryptography.encryptByPwdGson(keyPair.getPrivate().toString(), pwd);
+            SharedPreferences.Editor editor = keyStore.edit();
+            editor.putString(PRIVATE_KEY, encryptKeyString);
+            editor.apply();
             return keyPair.getPublic();
         } catch (Exception e) {
             return null;
@@ -100,11 +95,10 @@ public class AsymCryptography {
         return new BigInteger(modulusStr);
     }
 
-    public void loadPrivateKey(String pwd) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, ClassNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchPaddingException {
-        InputStream in = new FileInputStream(path);
-        ObjectInputStream inputStream = new ObjectInputStream(in);
-        SealedObject encryptKeyData = (SealedObject) inputStream.readObject();
-        String keyData = SymCryptography.decryptByPwd(encryptKeyData, pwd);
+    public void loadPrivateKey(String pwd, SharedPreferences keyStore) throws NoSuchPaddingException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException {
+        String encryptKeyData = keyStore.getString(PRIVATE_KEY, null);
+        String keyData = SymCryptography.decryptByPwdGson(encryptKeyData, pwd);
+
         BigInteger modulus = readModulusFromString(keyData);
         BigInteger prExponent = readExponentFromString(keyData);
         RSAPrivateKeySpec privateSpec = new RSAPrivateKeySpec(modulus, prExponent);
