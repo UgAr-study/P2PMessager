@@ -58,7 +58,7 @@ public class MultiCastReceiver extends Thread {
             return;
         }
 
-        byte[] buf = new byte[256];
+        byte[] buf = new byte[8192];
 
         while(true) {
 
