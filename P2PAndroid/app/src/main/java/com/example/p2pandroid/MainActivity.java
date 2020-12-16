@@ -61,14 +61,15 @@ public class MainActivity extends AppCompatActivity {
     private TCPReceiver tcpReceiver;
     private MultiCastReceiver mcReceiver;
 
+    private boolean isFirst = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        UsersTable = new SQLDataBase(MainActivity.this, "UsersContacts");
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        UsersTable = new SQLDataBase(MainActivity.this, "UsersContacts");
 
         Intent intent = getIntent();
 
@@ -77,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
         if (intent.hasExtra(LoginActivity.EXTRA_LOGIN)) {
             userName      = intent.getStringExtra(LoginActivity.EXTRA_LOGIN);
             userPublicKye = intent.getStringExtra(LoginActivity.EXTRA_PABLIC_KEY);
+            isFirst = true;
         } else {
             userName      = UsersTable.getNameById(String.valueOf(1)).get(0);
             userPublicKye = UsersTable.getPublicKeyById(String.valueOf(1)).get(0);
@@ -123,7 +125,8 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        UsersTable.WriteDB(userName, userIpAddress, userPublicKye);
+        if (isFirst)
+            UsersTable.WriteDB(userName, userIpAddress, userPublicKye);
 
         SharedPreferences kesStore = getSharedPreferences(AsymCryptography.KEY_STORE_NAME, MODE_PRIVATE);
 
