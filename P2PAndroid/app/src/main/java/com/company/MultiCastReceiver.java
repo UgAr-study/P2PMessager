@@ -33,10 +33,6 @@ public class MultiCastReceiver extends Thread {
         sqlTable    = tableInput;
         myName      = sqlTable.getNameById(String.valueOf(1)).get(0);
         myPublicKey = sqlTable.getPublicKeyById(String.valueOf(1)).get(0);
-        //ip          = sqlTable.getIpAddressById(String.valueOf(1)).get(0);
-        //myName = "Artem";
-        //myPublicKey = sqlTable.getPublicKeyByName(myName).get(0);
-        //ip = sqlTable.getIpAddressByName(myName).get(0);
         mHandler    = handler;
     }
 

@@ -67,14 +67,24 @@ public class TCPReceiver extends Thread {
 
                 ArrayList<String> aesKeys = UserTable.getAESKeyByIpAddress(ipAddress);
 
-                if (aesKeys.isEmpty()) {
+                boolean isAESKeyInTable = false;
+                for (int i = 0; i < aesKeys.size(); ++i)
+                    if (aesKeys.get(i) != null)
+                        isAESKeyInTable = true;
+
+                if (!isAESKeyInTable) {
                     AsymCryptography S = loadPrivateKey(userPassword);
-                    String symKey = S.decryptMsg(sobj);
 
-                    UserTable.updateAESKeyByIpAddress(symKey, ipAddress);
+                    if (S == null) {
+                        text = "Error: AsymCrypt failed\n";
+                    } else {
+                        String symKey = S.decryptMsg(sobj);
 
-                    sobj = (SealedObject) in.readObject();
-                    text = SymCryptography.decryptMsg(sobj, SymCryptography.getSecretKeyByString(symKey));
+                        UserTable.updateAESKeyByIpAddress(symKey, ipAddress);
+
+                        sobj = (SealedObject) in.readObject();
+                        text = SymCryptography.decryptMsg(sobj, SymCryptography.getSecretKeyByString(symKey));
+                    }
 
                 } else {
 
