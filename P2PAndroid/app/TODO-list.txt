@@ -1,0 +1,99 @@
+что нужно?
+
+отправка сообщений:
+
+    class MessageSender;
+
+	-получить сообщение из поля ввода
+
+	    String getText (TextView tv);
+
+	-получить адрес (публичный ключ) адресата
+
+	    String getPublicKey (?);
+
+
+	-шифровка сообщения с помощью публичного ключа адресата
+
+	    String encryptMessage(String message);
+
+	(-подпись своим приватным ключом)
+
+	    String signMessage (?);
+
+	-установление связи с адресатом
+
+	    Socket getConnection ();
+
+	-(при успешном соединении) отправка зашифрованного сообщения
+
+	    void sendMessage (Socket sk, String msg);
+
+	-уведомление об ошибке/успехе отправки сообщения
+
+	    void handleException();
+
+	-закрыть соединение
+
+	    void closeConnection(Socket sk);
+
+
+прием сообщений:
+
+    class MessageReceiver;
+
+	-принять запрос на соединение (аппаратно, через tcp-socket)
+
+	    Socket accessConnection();
+
+    {
+	-прием зашифрованного сообщения от отправителя
+    -получение информации об отправителе (его публичный ключ)
+	}
+	    Bundle getEncryptedData(Socket sk); // message, sender public key
+
+
+	(-проверка подписи)
+
+	    boolean verifyData (Bundle data);
+
+	-сообщить о неверных данных (не прошедших проверку)
+
+	    void notify(Socket sk, String msg);
+
+	-закрыть соединение
+
+	    void closeConnection(Socket sk);
+
+	-расшифровка сообщения своим приватным ключом
+
+	    Bundle decryptData (Bundle data, String usrPrivKey);
+
+	-проверка данного ключа на наличие в нашей таблице пользователей
+
+	    String getName (String pubKey, SQLDataBAse db);
+
+		-если есть, то получение его имени
+		-если нет, то вывод дефолтного (включить функцию смены имени пользователя)
+
+
+	{
+	-получение доступа к полю вывода сообщения
+	-вывод расшифрованного сообщения на экран
+	(с именем пользователя и временем получения сообщения)
+	}
+
+	    void showMessage (String message, String name, ?);
+
+
+
+мониторинг доступных пользователей:
+
+    class UserMonitoring;
+
+	-каждые n секунд проводится опрос соседей на получение информации о доступных пользователях
+	-обновление информации в таблице
+	-обновление информации на экране пользователя
+
+
+
