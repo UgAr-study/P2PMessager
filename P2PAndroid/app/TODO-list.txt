@@ -2,7 +2,7 @@
 
 отправка сообщений:
 
-    class MessageSender;
+    class MessageSender extends IntentService;
 
 	-получить сообщение из поля ввода
 
@@ -40,7 +40,7 @@
 
 прием сообщений:
 
-    class MessageReceiver;
+    class MessageReceiver extends RXAndroid;
 
 	-принять запрос на соединение (аппаратно, через tcp-socket)
 

@@ -44,6 +44,13 @@ import java.util.Locale;
 
 import javax.crypto.SealedObject;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+
+import com.jakewharton.rxbinding4.view.RxView;
+
 
 
 public class MainActivity extends AppCompatActivity {
@@ -155,7 +162,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickTestButton (View v) {
-
         //UsersTable.deleteInfoByName("Artem");
         UsersTable.deleteInfoByName("Ignat");
 
